@@ -24,7 +24,7 @@ def test_performance_metadata():
         p.size
     elapse2 = time.clock() - st
     
-    assert elapse1 > elapse2        
+    assert elapse1 >= elapse2        
     
 
 if __name__ == "__main__":
