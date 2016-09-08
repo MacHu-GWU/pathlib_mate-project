@@ -12,6 +12,6 @@ Release and Version History
 **Miscellaneous**
 
 
-0.0.1 (2016-01-01)
+0.0.1 (2016-09-07)
 ~~~~~~~~~~~~~~~~~~
 - First release
