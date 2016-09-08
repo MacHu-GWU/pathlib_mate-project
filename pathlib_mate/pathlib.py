@@ -19,7 +19,7 @@ import ntpath
 import os
 import posixpath
 import re
-import six
+from . import six
 import sys
 from collections import Sequence
 from contextlib import contextmanager
