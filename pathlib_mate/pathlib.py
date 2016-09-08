@@ -1,7 +1,8 @@
 """
 This is a REVISED version of standard pathlib.
+download from https://pypi.python.org/pypi/pathlib2/
 
-line 733::
+line 734::
 
     class PurePath(object):
         __slots__ = (
