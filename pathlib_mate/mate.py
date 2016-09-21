@@ -6,6 +6,7 @@ pathlib_mate provide extensive method, attributes for pathlib.
 
 """
 
+import os
 import hashlib
 from collections import OrderedDict
 from datetime import datetime
@@ -46,9 +47,9 @@ def _preprocess(path_or_path_list):
 def repr_data_size(size_in_bytes, precision=2):
     """Return human readable string represent of a file size. Doesn"t support 
     size greater than 1EB.
-    
+
     For example:
-    
+
     - 100 bytes => 100 B
     - 100,000 bytes => 97.66 KB
     - 100,000,000 bytes => 95.37 MB
@@ -56,9 +57,9 @@ def repr_data_size(size_in_bytes, precision=2):
     - 100,000,000,000,000 bytes => 90.95 TB
     - 100,000,000,000,000,000 bytes => 88.82 PB
     ...
-    
+
     Magnitude of data::
-    
+
         1000         kB    kilobyte
         1000 ** 2    MB    megabyte
         1000 ** 3    GB    gigabyte
@@ -70,7 +71,7 @@ def repr_data_size(size_in_bytes, precision=2):
     """
     if size_in_bytes < 1024:
         return "%s B" % size_in_bytes
-    
+
     magnitude_of_data = ["B", "KB", "MB", "GB", "TB", "PB", "EB", "ZB", "YB"]
     index = 0
     while 1:
@@ -85,21 +86,21 @@ def repr_data_size(size_in_bytes, precision=2):
 
 def md5file(abspath, nbytes=0):
     """Return md5 hash value of a piece of a file
-    
+
     Estimate processing time on:
-    
+
     :param abspath: the absolute path to the file
     :param nbytes: only has first N bytes of the file. if 0, hash all file
-    
+
     CPU = i7-4600U 2.10GHz - 2.70GHz, RAM = 8.00 GB
     1 second can process 0.25GB data
-    
+
     - 0.59G - 2.43 sec
     - 1.3G - 5.68 sec
     - 1.9G - 7.72 sec
     - 2.5G - 10.32 sec
     - 3.9G - 16.0 sec
-    """    
+    """
     m = hashlib.md5()
     with open(abspath, "rb") as f:
         if nbytes:
@@ -108,7 +109,7 @@ def md5file(abspath, nbytes=0):
                 m.update(data)
         else:
             while True:
-                data = f.read(4 * 1 << 16) # only use first 4GB data
+                data = f.read(4 * 1 << 16)  # only use first 4GB data
                 if not data:
                     break
                 m.update(data)
@@ -169,9 +170,16 @@ def ext(self):
 Path.ext = ext
 
 
-def md5(self, nbytes=0):
+def get_partial_md5(self, nbytes=0):
     """Md5 check sum.
     """
+    return md5file(self.abspath, nbytes)
+
+Path.get_partial_md5 = get_partial_md5
+
+
+@property
+def md5(self):
     return md5file(self.abspath)
 
 Path.md5 = md5
@@ -261,6 +269,35 @@ def create_datetime(self):
 Path.create_datetime = create_datetime
 
 
+def moveto(self, new_dirpath=None, new_fname=None, new_ext=None):
+    """moveto new place.
+    """
+    flag = False
+
+    if new_dirpath is None:
+        new_dirpath = self.dirpath
+    else:
+        flag = True
+
+    if new_fname is None:
+        new_fname = self.fname
+    else:
+        flag = True
+
+    if new_ext is None:
+        new_ext = self.ext
+    else:
+        flag = True
+
+    if flag:
+        self.rename(Path(new_dirpath, new_fname + new_ext))
+
+
+Path.moveto = moveto
+
+Path.remove = Path.unlink
+
+
 #--- select ---
 all_true = lambda x: True
 
@@ -345,7 +382,7 @@ def select_by_pattern_in_fname(self, pattern, recursive=True, case_sensitive=Fal
     if case_sensitive:
         pattern = pattern.lower()
         filters = lambda p: pattern in p.fname.lower()
-    else: 
+    else:
         filters = lambda p: pattern in p.fname
 
     return self.select_file(filters, recursive)
@@ -360,7 +397,7 @@ def select_by_pattern_in_abspath(self, pattern, recursive=True, case_sensitive=F
     if case_sensitive:
         pattern = pattern.lower()
         filters = lambda p: pattern in p.abspath.lower()
-    else: 
+    else:
         filters = lambda p: pattern in p.abspath
 
     return self.select_file(filters, recursive)
@@ -371,9 +408,9 @@ Path.select_by_pattern_in_abspath = select_by_pattern_in_abspath
 
 def select_by_size(self, min_size=0, max_size=1 << 40, recursive=True):
     """Select file path by size.
-    
+
     **中文文档**
-    
+
     选择所有文件大小在一定范围内的文件。
     """
     filters = lambda p: min_size <= p.size <= max_size
@@ -385,12 +422,12 @@ Path.select_by_size = select_by_size
 
 def select_by_mtime(self, min_time=0, max_time=4102462800.0, recursive=True):
     """Select file path by modify time.
-    
+
     :param min_time: lower bound timestamp
     :param max_time: upper bound timestamp
-    
+
     **中文文档**
-    
+
     选择所有mtime在一定范围内的文件。
     """
     filters = lambda p: min_time <= p.mtime <= max_time
@@ -402,12 +439,12 @@ Path.select_by_mtime = select_by_mtime
 
 def select_by_atime(self, min_time=0, max_time=4102462800.0, recursive=True):
     """Select file path by access time.
-    
+
     :param min_time: lower bound timestamp
     :param max_time: upper bound timestamp
-    
+
     **中文文档**
-    
+
     选择所有atime在一定范围内的文件。
     """
     filters = lambda p: min_time <= p.atime <= max_time
@@ -419,12 +456,12 @@ Path.select_by_atime = select_by_atime
 
 def select_by_ctime(self, min_time=0, max_time=4102462800.0, recursive=True):
     """Select file path by create time.
-    
+
     :param min_time: lower bound timestamp
     :param max_time: upper bound timestamp
-    
+
     **中文文档**
-    
+
     选择所有ctime在一定范围内的文件。
     """
     filters = lambda p: min_time <= p.ctime <= max_time
@@ -441,8 +478,8 @@ def select_image(self, recursive=True):
     ext = [".jpg", ".jpeg", ".png", ".gif", ".tiff",
            ".bmp", ".ppm", ".pgm", ".pbm", ".pnm", ".svg"]
     return select_by_ext(ext, recursive)
-    
-    
+
+
 Path.select_image = select_image
 
 
@@ -451,10 +488,10 @@ def select_audio(self, recursive=True):
     """
     ext = [".mp3", ".mp4", ".aac", ".m4a", ".wma",
            ".wav", ".ape", ".tak", ".tta",
-           ".3gp", ".webm", ".ogg",]
+           ".3gp", ".webm", ".ogg", ]
     return select_by_ext(ext, recursive)
-    
-    
+
+
 Path.select_audio = select_audio
 
 
@@ -463,10 +500,10 @@ def select_video(self, recursive=True):
     """
     ext = [".avi", ".wmv", ".mkv", ".mp4", ".flv",
            ".vob", ".mov", ".rm", ".rmvb", "3gp", ".3g2", ".nsv", ".webm",
-           ".mpg", ".mpeg", ".m4v", ".iso",]
+           ".mpg", ".mpeg", ".m4v", ".iso", ]
     return select_by_ext(ext, recursive)
-    
-    
+
+
 Path.select_video = select_video
 
 
@@ -475,8 +512,8 @@ def select_word(self, recursive=True):
     """
     ext = [".doc", ".docx", ".docm", ".dotx", ".dotm", ".docb"]
     return select_by_ext(ext, recursive)
-    
-    
+
+
 Path.select_word = select_word
 
 
@@ -485,8 +522,8 @@ def select_excel(self, recursive=True):
     """
     ext = [".xls", ".xlsx", ".xlsm", ".xltx", ".xltm"]
     return select_by_ext(ext, recursive)
-    
-    
+
+
 Path.select_excel = select_excel
 
 
@@ -495,11 +532,11 @@ def select_archive(self, recursive=True):
     """
     ext = [".zip", ".rar", ".gz", ".tar.gz", ".tgz", ".7z"]
     return select_by_ext(ext, recursive)
-    
-    
+
+
 Path.select_archive = select_archive
 
-    
+
 def _sort_by(key):
     """High order function for sort methods.
     """
