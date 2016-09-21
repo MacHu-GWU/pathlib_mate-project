@@ -97,6 +97,9 @@ First, let's use a simple file for demonstration ``C:\Users\admin\readme.txt``:
 
 Extended Method
 ~~~~~~~~~~~~~~~
+
+**Path.moveto**:
+
 The default ``Path.rename(target)`` method is not good enough. ``pathlib_mate`` provide a new utility method ``Path.moveto(new_abspath=None, new_dirpath=None, new_dirname=None, new_fname=None, new_ext=None)`` making rename way more easier.
 
 .. code-block:: python
@@ -111,7 +114,18 @@ The default ``Path.rename(target)`` method is not good enough. ``pathlib_mate`` 
 	>>> p_new
 	'C:\User\guest\introduction.txt'
 
-And you can use Path.remove() to remove the file form your disk, if it is a file.
+	# This will silently overwrite 'C:\User\guest\introduction.txt'
+	>>> p_new = p.moveto(new_fname=r"introduction", overwrite=True)
+
+
+**Path.copyto**:
+
+In addition, ``Path.copyto(new_abspath=None, new_dirpath=None, new_dirname=None, new_fname=None, new_ext=None)`` works same as ``Path.moveto()``, but it's a **copy operation**. By default, **it doesn't allow overwrite**.
+
+
+**Path.remove**:
+
+And, you can use Path.remove() to remove the file form your disk, if it is a file.
 
 .. code-block:: python
 

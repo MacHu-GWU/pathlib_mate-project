@@ -5,7 +5,7 @@
 pathlib_mate provide extensive method, attributes for pathlib.
 """
 
-import os
+import os, shutil
 import hashlib
 from collections import OrderedDict
 from datetime import datetime
@@ -280,11 +280,45 @@ def create_datetime(self):
 Path.create_datetime = create_datetime
 
 
-def moveto(self, 
+def change(self,
            new_abspath=None, 
            new_dirpath=None, new_dirname=None, 
            new_fname=None, 
            new_ext=None):
+    if new_abspath is not None:
+        p = Path(new_abspath)
+        return p
+    
+    if (new_dirpath is None) and (new_dirname is not None):
+        new_dirpath = os.path.join(self.parent.dirpath, new_dirname)
+        
+    elif (new_dirpath is not None) and (new_dirname is None):
+        new_dirpath = new_dirpath
+        
+    elif (new_dirpath is None) and (new_dirname is None):
+        new_dirpath = self.dirpath
+        
+    elif (new_dirpath is not None) and (new_dirname is not None):
+        raise ValueError("Cannot having both new_dirpath and new_dirname!")
+
+    if new_fname is None:
+        new_fname = self.fname
+
+    if new_ext is None:
+        new_ext = self.ext
+
+    return Path(new_dirpath, new_fname + new_ext)
+
+
+Path.change = change
+
+
+def moveto(self, 
+           new_abspath=None, 
+           new_dirpath=None, new_dirname=None, 
+           new_fname=None, 
+           new_ext=None,
+           overwrite=False):
     """An advanced ``Path.rename`` method provide ability to rename by parts of 
     a path. A new ``Path`` instance will returns.
     
@@ -292,45 +326,49 @@ def moveto(self,
     
     高级重命名函数, 允许用于根据路径的各个组成部分进行重命名。
     """
-    flag = False
+    p = self.change(new_abspath, new_dirpath, new_dirname, new_fname, new_ext)
     
-    if new_abspath is not None:
-        p = Path(new_abspath)
+    if p.exists():
+        if self.abspath == p.abspath:
+            pass
+        else:
+            if overwrite:
+                self.rename(p)
+            else:
+                raise EnvironmentError("'%s' exists!" % p.abspath)
+    else:
         self.rename(p)
-        return p
     
-    if (new_dirpath is None) and (new_dirname is not None):
-        new_dirpath = os.path.join(self.parent.dirpath, new_dirname)
-        flag = True
-        
-    elif (new_dirpath is not None) and (new_dirname is None):
-        new_dirpath = new_dirpath
-        flag = True
-        
-    elif (new_dirpath is None) and (new_dirname is None):
-        new_dirpath = self.dirpath
-        flag = True
-        
-    elif (new_dirpath is not None) and (new_dirname is not None):
-        raise ValueError("Cannot having both new_dirpath and new_dirname!")
-
-    if new_fname is None:
-        new_fname = self.fname
-    else:
-        flag = True
-
-    if new_ext is None:
-        new_ext = self.ext
-    else:
-        flag = True
-
-    if flag:
-        p = Path(new_dirpath, new_fname + new_ext)
-        self.rename(p)
-        return p
+    return p
         
 
 Path.moveto = moveto
+
+
+def copyto(self, 
+           new_abspath=None, 
+           new_dirpath=None, new_dirname=None, 
+           new_fname=None, 
+           new_ext=None,
+           overwrite=False):
+    p = self.change(new_abspath, new_dirpath, new_dirname, new_fname, new_ext)
+    
+    if self.abspath == p.abspath:
+        return p
+    
+    if p.exists():
+        if not overwrite:
+            raise EnvironmentError("'%s' exists!" % p.abspath)
+        else:
+            shutil.copy(self.abspath, p.abspath)
+    else:
+        shutil.copy(self.abspath, p.abspath)
+            
+    return p
+
+
+Path.copyto = copyto
+
 
 Path.remove = Path.unlink
 

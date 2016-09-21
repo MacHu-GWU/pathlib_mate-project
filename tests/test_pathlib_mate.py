@@ -95,6 +95,22 @@ def test_moveto():
     p = p.moveto(new_abspath=p.abspath)
     assert p.exists() is True
 
+    with pytest.raises(EnvironmentError):
+        p.moveto(new_abspath=__file__)
+        
+        
+def test_copyto():
+    p_test = Path(Path(__file__).dirpath, "testdata", "test.txt")
+    p_test2 = p_test.copyto(new_fname="test2")
+    
+    assert p_test.exists() is True
+    assert p_test2.exists() is True
+    
+    p_test2.remove()
+    assert p_test2.exists() is False
+    
+    with pytest.raises(EnvironmentError):
+        p_test.copyto(new_abspath=__file__)
     
 # Default test dir, the project dir: 'pathlib_mate-project'
 path = Path(".").absolute().parent
