@@ -210,7 +210,7 @@ Path.size_in_text = size_in_text
 
 @property
 def mtime(self):
-    """Get most recent modify timestamp.
+    """Get most recent modify time in timestamp.
     """
     try:
         return self._stat.st_mtime
@@ -224,7 +224,7 @@ Path.mtime = mtime
 
 @property
 def atime(self):
-    """Get most recent access timestamp.
+    """Get most recent access time in timestamp.
     """
     try:
         return self._stat.st_atime
@@ -238,7 +238,7 @@ Path.atime = atime
 
 @property
 def ctime(self):
-    """Get most recent create timestamp.
+    """Get most recent create time in timestamp.
     """
     try:
         return self._stat.st_ctime
@@ -252,7 +252,7 @@ Path.ctime = ctime
 
 @property
 def modify_datetime(self):
-    """Get most recent modify datetime.
+    """Get most recent modify time in datetime.
     """
     return datetime.fromtimestamp(self.mtime)
 
@@ -262,7 +262,7 @@ Path.modify_datetime = modify_datetime
 
 @property
 def access_datetime(self):
-    """Get most recent access datetime.
+    """Get most recent access time in datetime.
     """
     return datetime.fromtimestamp(self.atime)
 
@@ -272,7 +272,7 @@ Path.access_datetime = access_datetime
 
 @property
 def create_datetime(self):
-    """Get most recent create datetime.
+    """Get most recent create time in datetime.
     """
     return datetime.fromtimestamp(self.ctime)
 
@@ -280,7 +280,11 @@ def create_datetime(self):
 Path.create_datetime = create_datetime
 
 
-def moveto(self, new_dirpath=None, new_dirname=None, new_fname=None, new_ext=None):
+def moveto(self, 
+           new_abspath=None, 
+           new_dirpath=None, new_dirname=None, 
+           new_fname=None, 
+           new_ext=None):
     """An advanced ``Path.rename`` method provide ability to rename by parts of 
     a path. A new ``Path`` instance will returns.
     
@@ -289,7 +293,12 @@ def moveto(self, new_dirpath=None, new_dirname=None, new_fname=None, new_ext=Non
     高级重命名函数, 允许用于根据路径的各个组成部分进行重命名。
     """
     flag = False
-
+    
+    if new_abspath is not None:
+        p = Path(new_abspath)
+        self.rename(p)
+        return p
+    
     if (new_dirpath is None) and (new_dirname is not None):
         new_dirpath = os.path.join(self.parent.dirpath, new_dirname)
         flag = True

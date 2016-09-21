@@ -31,6 +31,8 @@ def test_attribute():
     p = Path(__file__).absolute()
     assert isinstance(p.abspath, str)
     assert isinstance(p.dirpath, str)
+    assert p.abspath == __file__
+    assert p.dirpath == os.path.dirname(__file__)
     assert p.dirname == os.path.basename(os.path.dirname(__file__))
     assert p.basename == os.path.basename(__file__)
     assert p.fname == os.path.splitext(os.path.basename(__file__))[0]
@@ -89,6 +91,10 @@ def test_moveto():
         new_ext=".txt",
     )
     assert p.exists() is True
+    
+    p = p.moveto(new_abspath=p.abspath)
+    assert p.exists() is True
+
     
 # Default test dir, the project dir: 'pathlib_mate-project'
 path = Path(".").absolute().parent
