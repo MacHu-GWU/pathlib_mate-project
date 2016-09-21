@@ -6,6 +6,8 @@
 
 .. image:: https://img.shields.io/pypi/pyversions/pathlib_mate.svg
 
+.. image:: https://img.shields.io/badge/downloads-1.5k/month-brightgreen.svg
+
 
 Welcome to pathlib_mate Documentation
 ===============================================================================
