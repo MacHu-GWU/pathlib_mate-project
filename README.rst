@@ -11,8 +11,6 @@ Welcome to pathlib_mate Documentation
 ===============================================================================
 `pathlib <https://docs.python.org/3/library/pathlib.html>`_ is an awesome library handling path in different OS. And it's been added into standard library since Python3.4. ``pathlib_mate`` gives extensive methods and attributes, makes ``pathlib`` more powerful and user-friendly.
 
-**Sorry, Documentation is not available yet.**
-
 
 **Quick Links**
 -------------------------------------------------------------------------------

@@ -47,30 +47,48 @@ def test_attribute():
     assert "KB" in p.size_in_text
     
 
-def test_rename():
+def test_moveto():
     p = Path(Path(__file__).dirpath, "testdata", "test.txt")
     p1 = Path(Path(__file__).dirpath, "testdata", "test1.txt")
     p2 = Path(Path(__file__).dirpath, "testdata", "test1.cfg")
     p3 = Path(Path(__file__).dirpath, "test1.cfg")
 
     assert p1.exists() is False
-     
+      
     p.moveto(new_fname="test1")
     assert p.exists() is False
     assert p1.exists() is True
-         
+          
     p1.moveto(new_ext=".cfg")
     assert p1.exists() is False
     assert p2.exists() is True
-     
+      
     p2.moveto(new_dirpath=p2.parent.dirpath)
     assert p2.exists() is False
     assert p3.exists() is True
-     
+      
     p3.rename(p)
     assert p3.exists() is False
     assert p.exists() is True
     
+    p = p.moveto(new_fname="test1")
+    assert p.exists() is True
+    
+    p = p.moveto(new_ext=".cfg")
+    assert p.exists() is True
+     
+    p = p.moveto(new_dirpath=p2.parent.dirpath)
+    assert p.exists() is True
+    
+    p = p.moveto(new_dirname="pathlib_mate")
+    assert p.exists() is True 
+    
+    p = p.moveto(
+        new_dirpath=Path(Path(__file__).dirpath, "testdata"),
+        new_fname="test",
+        new_ext=".txt",
+    )
+    assert p.exists() is True
     
 # Default test dir, the project dir: 'pathlib_mate-project'
 path = Path(".").absolute().parent

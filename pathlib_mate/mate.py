@@ -3,7 +3,6 @@
 
 """
 pathlib_mate provide extensive method, attributes for pathlib.
-
 """
 
 import os
@@ -211,6 +210,8 @@ Path.size_in_text = size_in_text
 
 @property
 def mtime(self):
+    """Get most recent modify timestamp.
+    """
     try:
         return self._stat.st_mtime
     except:
@@ -223,6 +224,8 @@ Path.mtime = mtime
 
 @property
 def atime(self):
+    """Get most recent access timestamp.
+    """
     try:
         return self._stat.st_atime
     except:
@@ -235,6 +238,8 @@ Path.atime = atime
 
 @property
 def ctime(self):
+    """Get most recent create timestamp.
+    """
     try:
         return self._stat.st_ctime
     except:
@@ -247,6 +252,8 @@ Path.ctime = ctime
 
 @property
 def modify_datetime(self):
+    """Get most recent modify datetime.
+    """
     return datetime.fromtimestamp(self.mtime)
 
 
@@ -255,6 +262,8 @@ Path.modify_datetime = modify_datetime
 
 @property
 def access_datetime(self):
+    """Get most recent access datetime.
+    """
     return datetime.fromtimestamp(self.atime)
 
 
@@ -263,21 +272,38 @@ Path.access_datetime = access_datetime
 
 @property
 def create_datetime(self):
+    """Get most recent create datetime.
+    """
     return datetime.fromtimestamp(self.ctime)
 
 
 Path.create_datetime = create_datetime
 
 
-def moveto(self, new_dirpath=None, new_fname=None, new_ext=None):
-    """moveto new place.
+def moveto(self, new_dirpath=None, new_dirname=None, new_fname=None, new_ext=None):
+    """An advanced ``Path.rename`` method provide ability to rename by parts of 
+    a path. A new ``Path`` instance will returns.
+    
+    **中文文档**
+    
+    高级重命名函数, 允许用于根据路径的各个组成部分进行重命名。
     """
     flag = False
 
-    if new_dirpath is None:
-        new_dirpath = self.dirpath
-    else:
+    if (new_dirpath is None) and (new_dirname is not None):
+        new_dirpath = os.path.join(self.parent.dirpath, new_dirname)
         flag = True
+        
+    elif (new_dirpath is not None) and (new_dirname is None):
+        new_dirpath = new_dirpath
+        flag = True
+        
+    elif (new_dirpath is None) and (new_dirname is None):
+        new_dirpath = self.dirpath
+        flag = True
+        
+    elif (new_dirpath is not None) and (new_dirname is not None):
+        raise ValueError("Cannot having both new_dirpath and new_dirname!")
 
     if new_fname is None:
         new_fname = self.fname
@@ -290,8 +316,10 @@ def moveto(self, new_dirpath=None, new_fname=None, new_ext=None):
         flag = True
 
     if flag:
-        self.rename(Path(new_dirpath, new_fname + new_ext))
-
+        p = Path(new_dirpath, new_fname + new_ext)
+        self.rename(p)
+        return p
+        
 
 Path.moveto = moveto
 
