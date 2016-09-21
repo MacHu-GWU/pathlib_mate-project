@@ -7,4 +7,5 @@ python:
 install:
   - pip install . # Install it self
   - pip install filetool
+  - pip install --upgrade pytest
 script: py.test
