@@ -168,19 +168,19 @@ You can easily customize the rules you use for filtering. You only need to defin
 
 Plus, ``pathlib_mate`` provides a set of utility methods for selection (They all support the ``recursive`` keyword):
 
-- ``select_by_ext(ext=[".jpg", ".png"])``: Select file path by extension.
-- ``select_by_pattern_in_fname(pattern="001")``: Select file path by text pattern in file name.
-- ``select_by_pattern_in_abspath(pattern="admin")``: Select file path by text pattern in absolute path.
-- ``select_by_size(min_size=0, max_size=999999999)``: Select file path by size.
-- ``select_by_mtime(min_time=0, max_time=999999999)``: Select file path by modify time.
-- ``select_by_atime(min_time=0, max_time=999999999)``: Select file path by access time.
-- ``select_by_ctime(min_time=0, max_time=999999999)``: Select file path by create time.
-- ``select_image()``: Select image file.
-- ``select_audio()``: Select audio file.
-- ``select_video()``: Select video file.
-- ``select_word()``: Select compressed archive file.
-- ``select_excel()``: Select Microsoft Excel file.
-- ``select_archive()``: Select compressed archive file.
+- ``Path.select_by_ext(ext=[".jpg", ".png"])``: Select file path by extension.
+- ``Path.select_by_pattern_in_fname(pattern="001")``: Select file path by text pattern in file name.
+- ``Path.select_by_pattern_in_abspath(pattern="admin")``: Select file path by text pattern in absolute path.
+- ``Path.select_by_size(min_size=0, max_size=999999999)``: Select file path by size.
+- ``Path.select_by_mtime(min_time=0, max_time=999999999)``: Select file path by modify time.
+- ``Path.select_by_atime(min_time=0, max_time=999999999)``: Select file path by access time.
+- ``Path.select_by_ctime(min_time=0, max_time=999999999)``: Select file path by create time.
+- ``Path.select_image()``: Select image file.
+- ``Path.select_audio()``: Select audio file.
+- ``Path.select_video()``: Select video file.
+- ``Path.select_word()``: Select compressed archive file.
+- ``Path.select_excel()``: Select Microsoft Excel file.
+- ``Path.select_archive()``: Select compressed archive file.
 
 **Sort result set**
 

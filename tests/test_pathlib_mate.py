@@ -5,8 +5,17 @@ import os
 import pytest
 from datetime import datetime
 from pathlib_mate import Path
- 
- 
+from pathlib_mate.mate import _preprocess
+
+
+def test_preprocess():
+    assert _preprocess("a") == ["a", ]
+    assert _preprocess(Path(__file__)) == [str(Path(__file__)), ]
+    
+    assert _preprocess(["a", ]) == ["a", ]
+    assert _preprocess([Path(__file__),]) == [str(Path(__file__)), ]
+    
+    
 def is_increasing(array):
     if len(array) >= 2:
         for i, j in zip(array[:-1], array[1:]):
@@ -50,9 +59,9 @@ def test_attribute():
     
 
 def test_moveto():
-    p = Path(Path(__file__).dirpath, "testdata", "test.txt")
-    p1 = Path(Path(__file__).dirpath, "testdata", "test1.txt")
-    p2 = Path(Path(__file__).dirpath, "testdata", "test1.cfg")
+    p = Path(Path(__file__).dirpath, "testdir", "test.txt")
+    p1 = Path(Path(__file__).dirpath, "testdir", "test1.txt")
+    p2 = Path(Path(__file__).dirpath, "testdir", "test1.cfg")
     p3 = Path(Path(__file__).dirpath, "test1.cfg")
 
     assert p1.exists() is False
@@ -86,7 +95,7 @@ def test_moveto():
     assert p.exists() is True 
     
     p = p.moveto(
-        new_dirpath=Path(Path(__file__).dirpath, "testdata"),
+        new_dirpath=Path(Path(__file__).dirpath, "testdir"),
         new_fname="test",
         new_ext=".txt",
     )
@@ -100,7 +109,7 @@ def test_moveto():
         
         
 def test_copyto():
-    p_test = Path(Path(__file__).dirpath, "testdata", "test.txt")
+    p_test = Path(Path(__file__).dirpath, "testdir", "test.txt")
     p_test2 = p_test.copyto(new_fname="test2")
     
     assert p_test.exists() is True
@@ -111,7 +120,8 @@ def test_copyto():
     
     with pytest.raises(EnvironmentError):
         p_test.copyto(new_abspath=__file__)
-    
+
+
 # Default test dir, the project dir: 'pathlib_mate-project'
 path = Path(".").absolute().parent
  
@@ -151,7 +161,12 @@ def test_select_by_size():
     for p in path.select_by_size(max_size=1000):
         assert p.size <= 1000
 
- 
+
+def test_select_image():
+    for p in path.select_image():
+        assert p.ext == ".jpg"
+
+
 def test_sort_by():
     p_list = Path.sort_by_size(path.select_file())
     assert is_increasing([p.size for p in p_list])

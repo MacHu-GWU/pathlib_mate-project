@@ -20,27 +20,26 @@ def _preprocess(path_or_path_list):
     """Preprocess input argument, whether if it is:
 
     1. abspath
-    2. WinFile instance
-    3. WinDir instance
+    2. Path instance
+    3. string
     4. list or set of any of them
 
     It returns list of path.
 
-    :return path_or_path_list: always return list of path
+    :return path_or_path_list: always return list of path in string
 
     **中文文档**
 
     预处理输入参数。
     """
-    if not isinstance(path_or_path_list, (list, set)):
-        path_or_path_list = [path_or_path_list, ]
+    if isinstance(path_or_path_list, (list, set)):
+        path_or_path_list = [str(path) for path in path_or_path_list]
+        return path_or_path_list
     else:
-        od = OrderedDict()
-        for path in path_or_path_list:
-            od[str(path)] = 0
-        path_or_path_list = list(od)
+        path_or_path_list = [path_or_path_list,]
+        return _preprocess(path_or_path_list)
 
-    return path_or_path_list
+    
 
 
 def repr_data_size(size_in_bytes, precision=2):
@@ -552,7 +551,7 @@ def select_image(self, recursive=True):
     """
     ext = [".jpg", ".jpeg", ".png", ".gif", ".tiff",
            ".bmp", ".ppm", ".pgm", ".pbm", ".pnm", ".svg"]
-    return select_by_ext(ext, recursive)
+    return self.select_by_ext(ext, recursive)
 
 
 Path.select_image = select_image
@@ -564,7 +563,7 @@ def select_audio(self, recursive=True):
     ext = [".mp3", ".mp4", ".aac", ".m4a", ".wma",
            ".wav", ".ape", ".tak", ".tta",
            ".3gp", ".webm", ".ogg", ]
-    return select_by_ext(ext, recursive)
+    return self.select_by_ext(ext, recursive)
 
 
 Path.select_audio = select_audio
@@ -576,7 +575,7 @@ def select_video(self, recursive=True):
     ext = [".avi", ".wmv", ".mkv", ".mp4", ".flv",
            ".vob", ".mov", ".rm", ".rmvb", "3gp", ".3g2", ".nsv", ".webm",
            ".mpg", ".mpeg", ".m4v", ".iso", ]
-    return select_by_ext(ext, recursive)
+    return self.select_by_ext(ext, recursive)
 
 
 Path.select_video = select_video
@@ -586,7 +585,7 @@ def select_word(self, recursive=True):
     """Select Microsoft Word file.
     """
     ext = [".doc", ".docx", ".docm", ".dotx", ".dotm", ".docb"]
-    return select_by_ext(ext, recursive)
+    return self.select_by_ext(ext, recursive)
 
 
 Path.select_word = select_word
@@ -596,7 +595,7 @@ def select_excel(self, recursive=True):
     """Select Microsoft Excel file.
     """
     ext = [".xls", ".xlsx", ".xlsm", ".xltx", ".xltm"]
-    return select_by_ext(ext, recursive)
+    return self.select_by_ext(ext, recursive)
 
 
 Path.select_excel = select_excel
@@ -606,7 +605,7 @@ def select_archive(self, recursive=True):
     """Select compressed archive file.
     """
     ext = [".zip", ".rar", ".gz", ".tar.gz", ".tgz", ".7z"]
-    return select_by_ext(ext, recursive)
+    return self.select_by_ext(ext, recursive)
 
 
 Path.select_archive = select_archive

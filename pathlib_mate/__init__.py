@@ -5,7 +5,7 @@
 pathlib_mate provide extensive methods, attributes for pathlib.
 """
 
-__version__ = "0.0.3"
+__version__ = "0.0.4"
 __short_description__ = "An extended and more powerful pathlib."
 __license__ = "MIT"
 __author__ = "Sanhe Hu"
