@@ -9,3 +9,7 @@ install:
   - pip install filetool
   - pip install --upgrade pytest
 script: py.test
+notifications:
+  slack:
+    on_success: never
+    on_failure: never

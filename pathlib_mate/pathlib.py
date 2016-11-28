@@ -1,3 +1,6 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
 """
 This is a REVISED version of standard pathlib.
 download from https://pypi.python.org/pypi/pathlib2/
