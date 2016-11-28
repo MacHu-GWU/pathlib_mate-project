@@ -25,7 +25,7 @@ def test_performance_metadata():
         p.size
     elapse2 = time.clock() - st
     
-    print("filetool use %s, but pathlib_mate use %s." % (elapse1, elapse2))         
+    print("filetool use %.4f, but pathlib_mate use %.4f." % (elapse1, elapse2))         
     
 
 if __name__ == "__main__":

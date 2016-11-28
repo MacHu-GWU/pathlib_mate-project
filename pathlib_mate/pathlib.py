@@ -54,7 +54,6 @@ else:
         supports_symlinks = False
         _getfinalpathname = None
 
-
 __all__ = [
     "PurePath", "PurePosixPath", "PureWindowsPath",
     "Path", "PosixPath", "WindowsPath",
@@ -63,6 +62,11 @@ __all__ = [
 #
 # Internals
 #
+
+# --- pathlib_mate ---
+import shutil
+import hashlib
+from datetime import datetime
 
 
 def _py2_fsencode(parts):
@@ -1571,6 +1575,463 @@ class Path(PurePath):
 
         return self
 
+    #--- pathlib_mate ---
+    @property
+    def abspath(self):
+        """Absolute path.
+        """
+        return self.__str__()
+
+    @property
+    def dirpath(self):
+        """Parent dir full absolute path.
+        """
+        return self.parent.abspath
+
+    @property
+    def dirname(self):
+        """Parent dir name.
+        """
+        return self.parent.name
+
+    @property
+    def basename(self):
+        """File name with extension, path is not included.
+        """
+        return self.name
+
+    @property
+    def fname(self):
+        """File name without extension.
+        """
+        return self.stem
+
+    @property
+    def ext(self):
+        """File extension. If it's a dir, then return empty str.
+        """
+        return self.suffix
+
+    def get_partial_md5(self, nbytes=0):
+        """Md5 check sum.
+        """
+        return md5file(self.abspath, nbytes)
+
+    @property
+    def md5(self):
+        return md5file(self.abspath)
+
+    @property
+    def size(self):
+        """File size in bytes.
+        """
+        try:
+            return self._stat.st_size
+        except:
+            self._stat = self.stat()
+            return self.size
+
+    @property
+    def dirsize(self):
+        total = 0
+        for p in self.select_file():
+            try:
+                total += p.size
+            except:
+                print("Unable to get file size of: %s" % p)
+        return total
+
+    @property
+    def size_in_text(self):
+        """File size as human readable string.
+        """
+        return repr_data_size(self.size, precision=2)
+
+    @property
+    def mtime(self):
+        """Get most recent modify time in timestamp.
+        """
+        try:
+            return self._stat.st_mtime
+        except:
+            self._stat = self.stat()
+            return self.mtime
+
+    @property
+    def atime(self):
+        """Get most recent access time in timestamp.
+        """
+        try:
+            return self._stat.st_atime
+        except:
+            self._stat = self.stat()
+            return self.atime
+
+    @property
+    def ctime(self):
+        """Get most recent create time in timestamp.
+        """
+        try:
+            return self._stat.st_ctime
+        except:
+            self._stat = self.stat()
+            return self.ctime
+
+    @property
+    def modify_datetime(self):
+        """Get most recent modify time in datetime.
+        """
+        return datetime.fromtimestamp(self.mtime)
+
+    @property
+    def access_datetime(self):
+        """Get most recent access time in datetime.
+        """
+        return datetime.fromtimestamp(self.atime)
+
+    @property
+    def create_datetime(self):
+        """Get most recent create time in datetime.
+        """
+        return datetime.fromtimestamp(self.ctime)
+
+    def change(self,
+               new_abspath=None,
+               new_dirpath=None, new_dirname=None,
+               new_fname=None,
+               new_ext=None):
+        if new_abspath is not None:
+            p = Path(new_abspath)
+            return p
+
+        if (new_dirpath is None) and (new_dirname is not None):
+            new_dirpath = os.path.join(self.parent.dirpath, new_dirname)
+
+        elif (new_dirpath is not None) and (new_dirname is None):
+            new_dirpath = new_dirpath
+
+        elif (new_dirpath is None) and (new_dirname is None):
+            new_dirpath = self.dirpath
+
+        elif (new_dirpath is not None) and (new_dirname is not None):
+            raise ValueError("Cannot having both new_dirpath and new_dirname!")
+
+        if new_fname is None:
+            new_fname = self.fname
+
+        if new_ext is None:
+            new_ext = self.ext
+
+        return Path(new_dirpath, new_fname + new_ext)
+
+    def moveto(self,
+               new_abspath=None,
+               new_dirpath=None, new_dirname=None,
+               new_fname=None,
+               new_ext=None,
+               overwrite=False):
+        """An advanced ``Path.rename`` method provide ability to rename by parts of
+        a path. A new ``Path`` instance will returns.
+
+        **中文文档**
+
+        高级重命名函数, 允许用于根据路径的各个组成部分进行重命名。
+        """
+        p = self.change(new_abspath, new_dirpath, new_dirname, new_fname, new_ext)
+
+        if p.exists():
+            if self.abspath == p.abspath:
+                pass
+            else:
+                if overwrite:
+                    self.rename(p)
+                else:
+                    raise EnvironmentError("'%s' exists!" % p.abspath)
+        else:
+            self.rename(p)
+
+        return p
+
+    def copyto(self,
+               new_abspath=None,
+               new_dirpath=None, new_dirname=None,
+               new_fname=None,
+               new_ext=None,
+               overwrite=False):
+        p = self.change(new_abspath, new_dirpath, new_dirname, new_fname, new_ext)
+
+        if self.abspath == p.abspath:
+            return p
+
+        if p.exists():
+            if not overwrite:
+                raise EnvironmentError("'%s' exists!" % p.abspath)
+            else:
+                shutil.copy(self.abspath, p.abspath)
+        else:
+            shutil.copy(self.abspath, p.abspath)
+
+        return p
+
+    remove = unlink
+
+    #--- select ---
+    all_true = lambda x: True
+
+    def select(self, filters=all_true, recursive=True):
+        """Select path by criterion.
+
+        :param filters: a lambda function that take a `pathlib.Path` as input,
+          boolean as a output.
+        :param recursive: include files in subfolder or not.
+
+        **中文文档**
+
+        根据filters中定义的条件选择路径。
+        """
+        if not self.is_dir():
+            raise TypeError("%s is not a directory!" % self)
+
+        if recursive:
+            for p in self.glob("**/*"):
+                if filters(p):
+                    yield p
+        else:
+            for p in self.iterdir():
+                if filters(p):
+                    yield p
+
+    def select_file(self, filters=all_true, recursive=True):
+        """Select file path by criterion.
+
+        **中文文档**
+
+        根据filters中定义的条件选择文件。
+        """
+        for p in self.select(filters, recursive):
+            if p.is_file():
+                yield p
+
+    def select_dir(self, filters=all_true, recursive=True):
+        """Select dir path by criterion.
+
+        **中文文档**
+
+        根据filters中定义的条件选择文件夹。
+        """
+        for p in self.select(filters, recursive):
+            if p.is_dir():
+                yield p
+
+    #--- Select by built-in criterion ---
+    def select_by_ext(self, ext, recursive=True):
+        """Select file path by extension.
+
+        :param ext:
+
+        **中文文档**
+
+        选择与预定义的若干个扩展名匹配的文件。
+        """
+        ext = [ext.strip().lower() for ext in _preprocess(ext)]
+        filters = lambda p: p.suffix.lower() in ext
+        return self.select_file(filters, recursive)
+
+    def select_by_pattern_in_fname(self, pattern, recursive=True, case_sensitive=False):
+        """Select file path by text pattern in file name.
+
+
+        **中文文档**
+
+        选择文件名中包含指定子字符串的文件。
+        """
+        if case_sensitive:
+            pattern = pattern.lower()
+            filters = lambda p: pattern in p.fname.lower()
+        else:
+            filters = lambda p: pattern in p.fname
+
+        return self.select_file(filters, recursive)
+
+    def select_by_pattern_in_abspath(self, pattern, recursive=True, case_sensitive=False):
+        """Select file path by text pattern in absolute path.
+
+        **中文文档**
+
+        选择绝对路径中包含指定子字符串的文件。
+        """
+        if case_sensitive:
+            pattern = pattern.lower()
+            filters = lambda p: pattern in p.abspath.lower()
+        else:
+            filters = lambda p: pattern in p.abspath
+
+        return self.select_file(filters, recursive)
+
+    def select_by_size(self, min_size=0, max_size=1 << 40, recursive=True):
+        """Select file path by size.
+
+        **中文文档**
+
+        选择所有文件大小在一定范围内的文件。
+        """
+        filters = lambda p: min_size <= p.size <= max_size
+        return self.select_file(filters, recursive)
+
+    def select_by_mtime(self, min_time=0, max_time=4102462800.0, recursive=True):
+        """Select file path by modify time.
+
+        :param min_time: lower bound timestamp
+        :param max_time: upper bound timestamp
+
+        **中文文档**
+
+        选择所有mtime在一定范围内的文件。
+        """
+        filters = lambda p: min_time <= p.mtime <= max_time
+        return self.select_file(filters, recursive)
+
+    def select_by_atime(self, min_time=0, max_time=4102462800.0, recursive=True):
+        """Select file path by access time.
+
+        :param min_time: lower bound timestamp
+        :param max_time: upper bound timestamp
+
+        **中文文档**
+
+        选择所有atime在一定范围内的文件。
+        """
+        filters = lambda p: min_time <= p.atime <= max_time
+        return self.select_file(filters, recursive)
+
+    def select_by_ctime(self, min_time=0, max_time=4102462800.0, recursive=True):
+        """Select file path by create time.
+
+        :param min_time: lower bound timestamp
+        :param max_time: upper bound timestamp
+
+        **中文文档**
+
+        选择所有ctime在一定范围内的文件。
+        """
+        filters = lambda p: min_time <= p.ctime <= max_time
+        return self.select_file(filters, recursive)
+
+    #--- Select Special File Type ---
+    def select_image(self, recursive=True):
+        """Select image file.
+        """
+        ext = [".jpg", ".jpeg", ".png", ".gif", ".tiff",
+               ".bmp", ".ppm", ".pgm", ".pbm", ".pnm", ".svg"]
+        return self.select_by_ext(ext, recursive)
+
+    def select_audio(self, recursive=True):
+        """Select audio file.
+        """
+        ext = [".mp3", ".mp4", ".aac", ".m4a", ".wma",
+               ".wav", ".ape", ".tak", ".tta",
+               ".3gp", ".webm", ".ogg", ]
+        return self.select_by_ext(ext, recursive)
+
+    def select_video(self, recursive=True):
+        """Select video file.
+        """
+        ext = [".avi", ".wmv", ".mkv", ".mp4", ".flv",
+               ".vob", ".mov", ".rm", ".rmvb", "3gp", ".3g2", ".nsv", ".webm",
+               ".mpg", ".mpeg", ".m4v", ".iso", ]
+        return self.select_by_ext(ext, recursive)
+
+    def select_word(self, recursive=True):
+        """Select Microsoft Word file.
+        """
+        ext = [".doc", ".docx", ".docm", ".dotx", ".dotm", ".docb"]
+        return self.select_by_ext(ext, recursive)
+
+    def select_excel(self, recursive=True):
+        """Select Microsoft Excel file.
+        """
+        ext = [".xls", ".xlsx", ".xlsm", ".xltx", ".xltm"]
+        return self.select_by_ext(ext, recursive)
+
+    def select_archive(self, recursive=True):
+        """Select compressed archive file.
+        """
+        ext = [".zip", ".rar", ".gz", ".tar.gz", ".tgz", ".7z"]
+        return self.select_by_ext(ext, recursive)
+
+    def _sort_by(key):
+        """High order function for sort methods.
+        """
+        @staticmethod
+        def sort_by(iterable, reverse=False):
+            return sorted(iterable, key=lambda p: getattr(p, key), reverse=reverse)
+        return sort_by
+
+
+    sort_by_abspath = _sort_by("abspath")
+    sort_by_fname = _sort_by("fname")
+    sort_by_ext = _sort_by("ext")
+    sort_by_size = _sort_by("size")
+    sort_by_mtime = _sort_by("mtime")
+    sort_by_atime = _sort_by("atime")
+    sort_by_ctime = _sort_by("ctime")
+    sort_by_md5 = _sort_by("md5")
+
+    #--- Recipe ---
+    def print_big_dir(self, top_n=5):
+        size_table = sorted(
+            [(p, p.dirsize) for p in self.select_dir(recursive=False)],
+            key=lambda x: x[1],
+            reverse=True,
+        )
+        for p, size in size_table[:top_n]:
+            print("{:<9}    {:<9}".format(repr_data_size(size), p.abspath))
+
+    def print_big_file(self, top_n=5):
+        size_table = sorted(
+            [(p, p.size) for p in self.select_file(recursive=True)],
+            key=lambda x: x[1],
+            reverse=True,
+        )
+        for p, size in size_table[:top_n]:
+            print("{:<9}    {:<9}".format(repr_data_size(size), p.abspath))
+
+    def print_big_dir_and_big_file(self, top_n=5):
+        size_table1 = sorted(
+            [(p, p.dirsize) for p in self.select_dir(recursive=False)],
+            key=lambda x: x[1],
+            reverse=True,
+        )
+        for p1, size1 in size_table1[:top_n]:
+            print("{:<9}    {:<9}".format(repr_data_size(size1), p1.abspath))
+            size_table2 = sorted(
+                [(p, p.size) for p in p1.select_file(recursive=True)],
+                key=lambda x: x[1],
+                reverse=True,
+            )
+            for p2, size2 in size_table2[:top_n]:
+                print("    {:<9}    {:<9}".format(repr_data_size(size2), p2.abspath))
+
+    def mirror_to(self, dst):
+        src = self.abspath
+        dst = os.path.abspath(dst)
+        if (not self.exists()) or os.path.exists(dst):
+            raise Exception("source not exist or distination already exist")
+
+        folder_to_create = list()
+        file_to_create = list()
+
+        for current_folder, _, file_list in os.walk(self.abspath):
+            current_folder = current_folder.replace(src, dst)
+            try:
+                os.mkdir(current_folder)
+            except:
+                pass
+            for basename in file_list:
+                abspath = os.path.join(current_folder, basename)
+                with open(abspath, "wb") as _:
+                    pass
+
 
 class PosixPath(Path, PurePosixPath):
     __slots__ = ()
@@ -1578,3 +2039,100 @@ class PosixPath(Path, PurePosixPath):
 
 class WindowsPath(Path, PureWindowsPath):
     __slots__ = ()
+
+
+#--- pathlib_mate ---
+def _preprocess(path_or_path_list):
+    """Preprocess input argument, whether if it is:
+
+    1. abspath
+    2. Path instance
+    3. string
+    4. list or set of any of them
+
+    It returns list of path.
+
+    :return path_or_path_list: always return list of path in string
+
+    **中文文档**
+
+    预处理输入参数。
+    """
+    if isinstance(path_or_path_list, (list, set)):
+        path_or_path_list = [str(path) for path in path_or_path_list]
+        return path_or_path_list
+    else:
+        path_or_path_list = [path_or_path_list,]
+        return _preprocess(path_or_path_list)
+
+
+def repr_data_size(size_in_bytes, precision=2):
+    """Return human readable string represent of a file size. Doesn"t support
+    size greater than 1EB.
+
+    For example:
+
+    - 100 bytes => 100 B
+    - 100,000 bytes => 97.66 KB
+    - 100,000,000 bytes => 95.37 MB
+    - 100,000,000,000 bytes => 93.13 GB
+    - 100,000,000,000,000 bytes => 90.95 TB
+    - 100,000,000,000,000,000 bytes => 88.82 PB
+    ...
+
+    Magnitude of data::
+
+        1000         kB    kilobyte
+        1000 ** 2    MB    megabyte
+        1000 ** 3    GB    gigabyte
+        1000 ** 4    TB    terabyte
+        1000 ** 5    PB    petabyte
+        1000 ** 6    EB    exabyte
+        1000 ** 7    ZB    zettabyte
+        1000 ** 8    YB    yottabyte
+    """
+    if size_in_bytes < 1024:
+        return "%s B" % size_in_bytes
+
+    magnitude_of_data = ["B", "KB", "MB", "GB", "TB", "PB", "EB", "ZB", "YB"]
+    index = 0
+    while 1:
+        index += 1
+        size_in_bytes, mod = divmod(size_in_bytes, 1024)
+        if size_in_bytes < 1024:
+            break
+    template = "{0:.%sf} {1}" % precision
+    s = template.format(size_in_bytes + mod/1024.0, magnitude_of_data[index])
+    return s
+
+
+def md5file(abspath, nbytes=0):
+    """Return md5 hash value of a piece of a file
+
+    Estimate processing time on:
+
+    :param abspath: the absolute path to the file
+    :param nbytes: only has first N bytes of the file. if 0, hash all file
+
+    CPU = i7-4600U 2.10GHz - 2.70GHz, RAM = 8.00 GB
+    1 second can process 0.25GB data
+
+    - 0.59G - 2.43 sec
+    - 1.3G - 5.68 sec
+    - 1.9G - 7.72 sec
+    - 2.5G - 10.32 sec
+    - 3.9G - 16.0 sec
+    """
+    m = hashlib.md5()
+    with open(abspath, "rb") as f:
+        if nbytes:
+            data = f.read(nbytes)
+            if data:
+                m.update(data)
+        else:
+            while True:
+                data = f.read(4 * 1 << 16)  # only use first 4GB data
+                if not data:
+                    break
+                m.update(data)
+    return m.hexdigest()

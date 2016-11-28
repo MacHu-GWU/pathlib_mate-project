@@ -49,6 +49,7 @@ def test_attribute():
     assert len(p.md5) == 32
     assert len(p.get_partial_md5(1)) == 32
     assert p.size >= 1024
+    assert p.parent.dirsize >= 32768
     assert p.ctime >= 1451624400.0
     assert p.mtime >= 1451624400.0
     assert p.atime >= 1451624400.0
@@ -173,8 +174,26 @@ def test_sort_by():
       
     p_list = Path.sort_by_size(path.select_file(), reverse=True)
     assert is_decreasing([p.size for p in p_list])
+
+
+def test_print_big_dir():
+    """Not needed.
+    """
+#     path.print_big_dir()
+
+
+def test_print_big_file():
+    """Not needed.
+    """
+#     path.print_big_file()
     
+
+def test_print_big_dir_and_big_file():
+    """Not needed.
+    """
+#     path.print_big_dir_and_big_file()
     
+
 if __name__ == "__main__":
     import os
     pytest.main(["--tb=native", "-s", os.path.basename(__file__)])
