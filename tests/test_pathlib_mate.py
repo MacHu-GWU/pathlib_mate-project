@@ -5,7 +5,7 @@ import os
 import pytest
 from datetime import datetime
 from pathlib_mate import Path
-from pathlib_mate.mate import _preprocess
+from pathlib_mate.pathlib import _preprocess
 
 
 def test_preprocess():
