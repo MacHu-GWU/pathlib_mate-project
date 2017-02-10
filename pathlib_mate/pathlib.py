@@ -2018,8 +2018,12 @@ class Path(PurePath):
     def mirror_to(self, dst):
         src = self.abspath
         dst = os.path.abspath(dst)
-        if (not self.exists()) or os.path.exists(dst):
-            raise Exception("source not exist or distination already exist")
+        if not self.exists():
+            raise Exception("source is not exists!")
+        if not self.is_dir():
+            raise Exception("source is not a dir!")
+        if os.path.exists(dst):
+            raise Exception("distination already exist!")
 
         folder_to_create = list()
         file_to_create = list()

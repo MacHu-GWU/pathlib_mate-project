@@ -177,22 +177,28 @@ def test_sort_by():
 
 
 def test_print_big_dir():
-    """Not needed.
+    """Not need in travis.
     """
 #     path.print_big_dir()
 
 
 def test_print_big_file():
-    """Not needed.
+    """Not need in travis.
     """
 #     path.print_big_file()
     
 
 def test_print_big_dir_and_big_file():
-    """Not needed.
+    """Not need in travis.
     """
 #     path.print_big_dir_and_big_file()
-    
+
+def test_mirror_to():
+    """Not need in travis.
+    """
+#     path = Path("testdir")
+#     path.mirror_to("mirror")
+
 
 if __name__ == "__main__":
     import os
