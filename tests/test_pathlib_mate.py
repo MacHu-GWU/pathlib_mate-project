@@ -199,7 +199,14 @@ def test_mirror_to():
 #     path = Path("testdir")
 #     path.mirror_to("mirror")
 
-
+def test_backup():
+    """Not need in travis.
+    """
+    p = Path(__file__).parent
+    # ignore larger than 1MB
+    p.backup(ignore_size_larger_than=1000000, case_sensitive=False)
+    
+    
 if __name__ == "__main__":
     import os
     pytest.main(["--tb=native", "-s", os.path.basename(__file__)])

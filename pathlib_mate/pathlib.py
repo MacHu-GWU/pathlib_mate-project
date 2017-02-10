@@ -1583,7 +1583,7 @@ class Path(PurePath):
     def abspath(self):
         """Absolute path.
         """
-        return self.__str__()
+        return self.absolute().__str__()
 
     @property
     def dirpath(self):
@@ -1616,12 +1616,14 @@ class Path(PurePath):
         return self.suffix
 
     def get_partial_md5(self, nbytes=0):
-        """Md5 check sum.
+        """Return md5 check sum of first n bytes of this file.
         """
         return md5file(self.abspath, nbytes)
 
     @property
     def md5(self):
+        """Return md5 check sum of this file.
+        """
         return md5file(self.abspath)
 
     @property
@@ -1636,8 +1638,10 @@ class Path(PurePath):
 
     @property
     def dirsize(self):
+        """Return total file size (include sub folder).
+        """
         total = 0
-        for p in self.select_file():
+        for p in self.select_file(recursive=True):
             try:
                 total += p.size
             except:
@@ -1703,6 +1707,8 @@ class Path(PurePath):
                new_dirpath=None, new_dirname=None,
                new_fname=None,
                new_ext=None):
+        """Return a new :class:`Path` object with updated information.
+        """
         if new_abspath is not None:
             p = Path(new_abspath)
             return p
@@ -1761,11 +1767,16 @@ class Path(PurePath):
                new_fname=None,
                new_ext=None,
                overwrite=False):
+        """Copy this file to other place.
+        """
         p = self.change(new_abspath, new_dirpath, new_dirname, new_fname, new_ext)
 
         if self.abspath == p.abspath:
             return p
 
+        if not self.exists():
+            raise EnvironmentError("'%s' not exists!" % self.abspath)
+        
         if p.exists():
             if not overwrite:
                 raise EnvironmentError("'%s' exists!" % p.abspath)
@@ -1966,22 +1977,74 @@ class Path(PurePath):
         """High order function for sort methods.
         """
         @staticmethod
-        def sort_by(iterable, reverse=False):
-            return sorted(iterable, key=lambda p: getattr(p, key), reverse=reverse)
+        def sort_by(p_list, reverse=False):
+            return sorted(p_list, key=lambda p: getattr(p, key), reverse=reverse)
         return sort_by
 
 
     sort_by_abspath = _sort_by("abspath")
+    """Sort list of :class:`Path` by absolute path.
+    
+    :params p_list: list of :class:`Path`
+    :params reverse: if False, return in descending order
+    """
+    
     sort_by_fname = _sort_by("fname")
+    """Sort list of :class:`Path` by file name.
+    
+    :params p_list: list of :class:`Path`
+    :params reverse: if False, return in descending order
+    """
+    
     sort_by_ext = _sort_by("ext")
+    """Sort list of :class:`Path` by extension.
+    
+    :params p_list: list of :class:`Path`
+    :params reverse: if False, return in descending order
+    """
+    
     sort_by_size = _sort_by("size")
+    """Sort list of :class:`Path` by file size.
+    
+    :params p_list: list of :class:`Path`
+    :params reverse: if False, return in descending order
+    """
+    
     sort_by_mtime = _sort_by("mtime")
+    """Sort list of :class:`Path` by modify time.
+    
+    :params p_list: list of :class:`Path`
+    :params reverse: if False, return in descending order
+    """
+    
     sort_by_atime = _sort_by("atime")
+    """Sort list of :class:`Path` by access time.
+    
+    :params p_list: list of :class:`Path`
+    :params reverse: if False, return in descending order
+    """
+    
     sort_by_ctime = _sort_by("ctime")
+    """Sort list of :class:`Path` by create time.
+    
+    :params p_list: list of :class:`Path`
+    :params reverse: if False, return in descending order
+    """
+    
     sort_by_md5 = _sort_by("md5")
-
+    """Sort list of :class:`Path` by md5.
+    
+    :params p_list: list of :class:`Path`
+    :params reverse: if False, return in descending order
+    """
+    
     #--- Recipe ---
     def print_big_dir(self, top_n=5):
+        """Print ``top_n`` big dir in this dir.
+        """
+        if not self.is_dir():
+            raise EnvironmentError("'%s' not exists!" % self)
+        
         size_table = sorted(
             [(p, p.dirsize) for p in self.select_dir(recursive=False)],
             key=lambda x: x[1],
@@ -1991,6 +2054,11 @@ class Path(PurePath):
             print("{:<9}    {:<9}".format(repr_data_size(size), p.abspath))
 
     def print_big_file(self, top_n=5):
+        """Print ``top_n`` big file in this dir.
+        """
+        if not self.is_dir():
+            raise EnvironmentError("'%s' not exists!" % self)
+        
         size_table = sorted(
             [(p, p.size) for p in self.select_file(recursive=True)],
             key=lambda x: x[1],
@@ -2000,6 +2068,11 @@ class Path(PurePath):
             print("{:<9}    {:<9}".format(repr_data_size(size), p.abspath))
 
     def print_big_dir_and_big_file(self, top_n=5):
+        """Print ``top_n`` big dir and ``top_n`` big file in each dir.
+        """
+        if not self.is_dir():
+            raise EnvironmentError("'%s' not exists!" % self)
+        
         size_table1 = sorted(
             [(p, p.dirsize) for p in self.select_dir(recursive=False)],
             key=lambda x: x[1],
@@ -2039,7 +2112,133 @@ class Path(PurePath):
                 with open(abspath, "wb") as _:
                     pass
 
+    def backup(self, dst=None, 
+               ignore=None, 
+               ignore_ext=None, 
+               ignore_pattern=None,
+               ignore_size_smaller_than=None,
+               ignore_size_larger_than=None,
+               case_sensitive=False):
+        """The backup utility method. Basically it just add files that need to be
+        backupped to zip archives.
+    
+        :param filename: the output file name, DO NOT NEED FILE EXTENSION.
+        :param root_dir: the directory you want to backup.
+        :param ignore: file or directory defined in this list will be ignored.
+        :param ignore_ext: file with extensions defined in this list will be ignored.
+        :param ignore_pattern: any file or directory that contains this pattern
+          will be ignored.
+        """
+        from zipfile import ZipFile
 
+        def preprocess_arg(arg):
+            if arg is None:
+                return []
+            
+            if isinstance(arg, (tuple, list)):
+                return list(arg)
+            else:
+                return [arg, ]
+            
+        if not (self.is_dir() and self.exists()):
+            raise Exception("")
+        
+        tab = "    "
+        
+        # Step 0, preprocess input argument
+        surfix = " %s.zip" % datetime.now().strftime("%Y-%m-%d %Hh-%Mm-%Ss")
+        if dst is None:
+            dst = Path(os.getcwd(), self.basename + surfix).abspath
+        else:
+            dst = str(dst)
+            if dst.endswith(".zip") or dst.endswith(".ZIP"):
+                dst = dst[:-4]
+            dst = Path(Path(dst).abspath + surfix).abspath
+        print("Backup '%s' to '%s'..." % (self.abspath, dst))
+            
+        # Step 1, calculate files to backup
+        print(tab + "1. Calculate files...")
+        
+        ignore = preprocess_arg(ignore)
+        for i in ignore:
+            if i.startswith("/") or i.startswith("\\"):
+                raise ValueError
+        
+        ignore_ext = preprocess_arg(ignore_ext)
+        for ext in ignore_ext:
+            if not ext.startswith("."):
+                raise ValueError
+        
+        ignore_pattern = preprocess_arg(ignore_pattern) 
+        
+        if case_sensitive:
+            pass
+        else:
+            ignore = [i.lower() for i in ignore]
+            ignore_ext = [i.lower() for i in ignore_ext]
+            ignore_pattern = [i.lower() for i in ignore_pattern]
+            
+        def filters(p):
+            relpath = p.relative_to(self).abspath
+            if not case_sensitive:
+                relpath = relpath.lower()
+            
+            # ignore
+            for i in ignore:
+                if relpath.startswith(i):
+                    return False
+            
+            # ignore_ext
+            if case_sensitive:
+                ext = p.ext
+            else:
+                ext = p.ext.lower()
+                
+            if ext in ignore_ext:
+                return False
+            
+            # ignore_pattern
+            for pattern in ignore_pattern:
+                if pattern in relpath:
+                    return False
+            
+            # ignore_size_smaller_than
+            if ignore_size_smaller_than:
+                if p.size < ignore_size_smaller_than:
+                    return False
+                
+            # ignore_size_larger_than
+            if ignore_size_larger_than:
+                if p.size > ignore_size_larger_than:
+                    return False
+            
+            return True
+        
+        total_size = 0
+        selected = list()
+        for p in self.glob("**/*"):
+            if filters(p):
+                selected.append(p)
+                total_size += p.size
+        
+        print(tab * 2 + "Done, got %s files, total size is %s." % (
+            len(selected), repr_data_size(total_size)))
+        
+        # Step 2, write files to zip archive
+        print(tab + "2. Backup files...")
+        current_dir = os.getcwd()
+        
+        with ZipFile(dst, "w") as f:
+            os.chdir(self.abspath)
+            for p in selected:
+                relpath = p.relative_to(self).__str__()
+                f.write(relpath)
+    
+        os.chdir(current_dir)
+    
+        print(tab * 2 + "Complete!")
+    
+    
 class PosixPath(Path, PurePosixPath):
     __slots__ = ()
 
