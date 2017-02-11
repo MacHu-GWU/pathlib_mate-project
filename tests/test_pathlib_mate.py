@@ -202,9 +202,8 @@ def test_mirror_to():
 def test_backup():
     """Not need in travis.
     """
-    p = Path(__file__).parent
-    # ignore larger than 1MB
-    p.backup(ignore_size_larger_than=1000000, case_sensitive=False)
+#     p = Path(__file__).parent
+#     p.backup(ignore_size_larger_than=1000, case_sensitive=False)
     
     
 if __name__ == "__main__":

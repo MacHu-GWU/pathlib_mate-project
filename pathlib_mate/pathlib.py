@@ -1105,6 +1105,8 @@ class PureWindowsPath(PurePath):
 
 
 class Path(PurePath):
+    """Path represent a virtual/real path in your file system.
+    """
     __slots__ = (
         '_accessor',
         '_closed',

@@ -16,6 +16,7 @@ doc = docfly.ApiReferenceDoc(
     dst="source",
     ignore=[
         "%s.packages" % package_name,
+        "%s.six" % package_name,
         "%s.zzz_manual_install.py" % package_name,
     ]
 )
