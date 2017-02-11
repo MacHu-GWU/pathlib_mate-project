@@ -126,7 +126,6 @@ def test_copyto():
 # Default test dir, the project dir: 'pathlib_mate-project'
 path = Path(".").absolute().parent
  
- 
 def test_select():
     def filters(p):
         if p.fname.startswith("f"):
@@ -165,7 +164,7 @@ def test_select_by_size():
 
 def test_select_image():
     for p in path.select_image():
-        assert p.ext == ".jpg"
+        assert p.ext in [".jpg", ".png", ".gif"]
 
 
 def test_sort_by():
