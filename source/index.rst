@@ -63,7 +63,7 @@ First, let's use a simple file for demonstration ``C:\Users\admin\readme.txt``:
 
 .. code-block:: python
 
-	>>> p.md5 # md5 check sum of this file (if exists)
+	>>> p.md5 # md5 check sum of this file (if file exists)
 
 :meth:`~pathlib_mate.pathlib.Path.size`
 
@@ -211,6 +211,8 @@ In addition, you have these options for sorting.
 
 Utility Tools
 -------------
+- :meth:`~pathlib_mate.file_stat()`: return how many file, directory and totalsize of a direcoty.
+- :meth:`~pathlib_mate.file_stat_for_all()`: return stat for this directory and all subfolders.
 - :meth:`~pathlib_mate.pathlib.Path.print_big_dir()`: Display top-n big directory in a directory.
 - :meth:`~pathlib_mate.pathlib.Path.print_big_file()`: Display top-n big file in a directory.
 - :meth:`~pathlib_mate.pathlib.Path.print_big_dir_and_big_file()`: Display top-n big dir and big file in a directory.

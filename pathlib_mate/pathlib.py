@@ -22,7 +22,10 @@ import ntpath
 import os
 import posixpath
 import re
-from . import six
+try:
+    from . import six
+except:
+    from pathlib_mate import six
 import sys
 from collections import Sequence
 from contextlib import contextmanager
@@ -1581,45 +1584,75 @@ class Path(PurePath):
         return self
 
     #--- pathlib_mate ---
+    def assert_is_file_and_exists(self):
+        """Assert it is a directory and exists in file system. 
+        """
+        if not self.is_file():
+            raise EnvironmentError("'%s' is not a file!" % self)
+        if not self.exists():
+            raise EnvironmentError("'%s' not exists!" % self)
+        
+    def assert_is_dir_and_exists(self):
+        """Assert it is a directory and exists in file system. 
+        """
+        if not self.is_dir():
+            raise EnvironmentError("'%s' is not a directory!" % self)
+        if not self.exists():
+            raise EnvironmentError("'%s' not exists!" % self)
+        
     @property
     def abspath(self):
-        """Absolute path.
+        r"""Absolute path.
+        
+        Example: ``C:\User\admin\readme.txt``
         """
         return self.absolute().__str__()
 
     @property
     def dirpath(self):
-        """Parent dir full absolute path.
+        r"""Parent dir full absolute path.
+        
+        Example: ``C:\User\admin``
         """
         return self.parent.abspath
 
     @property
     def dirname(self):
         """Parent dir name.
+        
+        Example: ``admin``
         """
         return self.parent.name
 
     @property
     def basename(self):
         """File name with extension, path is not included.
+        
+        Example: ``readme.txt``
         """
         return self.name
 
     @property
     def fname(self):
         """File name without extension.
+        
+        Example: ``readme``
         """
         return self.stem
 
     @property
     def ext(self):
         """File extension. If it's a dir, then return empty str.
+        
+        Example: ``.txt``
         """
         return self.suffix
 
-    def get_partial_md5(self, nbytes=0):
+    def get_partial_md5(self, nbytes):
         """Return md5 check sum of first n bytes of this file.
         """
+        if nbytes in [0, None]:
+            raise ValueError("'nbytes' has to be positive integer.")
         return md5file(self.abspath, nbytes)
 
     @property
@@ -1791,7 +1824,7 @@ class Path(PurePath):
 
     remove = unlink
 
-    #--- select ---
+    #--- select ---    
     all_true = lambda x: True
 
     def select(self, filters=all_true, recursive=True):
@@ -1805,8 +1838,7 @@ class Path(PurePath):
 
         根据filters中定义的条件选择路径。
         """
-        if not self.is_dir():
-            raise TypeError("%s is not a directory!" % self)
+        self.assert_is_dir_and_exists()
 
         if recursive:
             for p in self.glob("**/*"):
@@ -1934,28 +1966,37 @@ class Path(PurePath):
         return self.select_file(filters, recursive)
 
     #--- Select Special File Type ---
+    _image_ext = [
+        ".jpg", ".jpeg", ".png", ".gif", ".tiff",
+        ".bmp", ".ppm", ".pgm", ".pbm", ".pnm", ".svg",
+    ]
+    
     def select_image(self, recursive=True):
         """Select image file.
         """
-        ext = [".jpg", ".jpeg", ".png", ".gif", ".tiff",
-               ".bmp", ".ppm", ".pgm", ".pbm", ".pnm", ".svg"]
-        return self.select_by_ext(ext, recursive)
-
+        return self.select_by_ext(self._image_ext, recursive)
+    
+    _audio_ext = [
+        ".mp3", ".mp4", ".aac", ".m4a", ".wma",
+        ".wav", ".ape", ".tak", ".tta",
+        ".3gp", ".webm", ".ogg", 
+    ]
+    
     def select_audio(self, recursive=True):
         """Select audio file.
         """
-        ext = [".mp3", ".mp4", ".aac", ".m4a", ".wma",
-               ".wav", ".ape", ".tak", ".tta",
-               ".3gp", ".webm", ".ogg", ]
-        return self.select_by_ext(ext, recursive)
+        return self.select_by_ext(self._audio_ext, recursive)
 
+    _video_ext = [
+        ".avi", ".wmv", ".mkv", ".mp4", ".flv",
+        ".vob", ".mov", ".rm", ".rmvb", "3gp", ".3g2", ".nsv", ".webm",
+        ".mpg", ".mpeg", ".m4v", ".iso", 
+    ]
+    
     def select_video(self, recursive=True):
         """Select video file.
         """
-        ext = [".avi", ".wmv", ".mkv", ".mp4", ".flv",
-               ".vob", ".mov", ".rm", ".rmvb", "3gp", ".3g2", ".nsv", ".webm",
-               ".mpg", ".mpeg", ".m4v", ".iso", ]
-        return self.select_by_ext(ext, recursive)
+        return self.select_by_ext(self._video_ext, recursive)
 
     def select_word(self, recursive=True):
         """Select Microsoft Word file.
@@ -1968,12 +2009,13 @@ class Path(PurePath):
         """
         ext = [".xls", ".xlsx", ".xlsm", ".xltx", ".xltm"]
         return self.select_by_ext(ext, recursive)
-
+    
+    _archive_ext = [".zip", ".rar", ".gz", ".tar.gz", ".tgz", ".7z"]
+    
     def select_archive(self, recursive=True):
         """Select compressed archive file.
         """
-        ext = [".zip", ".rar", ".gz", ".tar.gz", ".tgz", ".7z"]
-        return self.select_by_ext(ext, recursive)
+        return self.select_by_ext(self._archive_ext, recursive)
 
     def _sort_by(key):
         """High order function for sort methods.
@@ -2040,12 +2082,32 @@ class Path(PurePath):
     :params reverse: if False, return in descending order
     """
     
-    #--- Recipe ---
+    
+    def is_empty(self, strict=True):
+        """Test:
+        
+        - If it's a file, check if it is a emtpty file. (0 bytes)
+        - If it's a directory, check if there's no file and dir in it. But if
+          ``strict = False``, then only check if there's no file in it.
+        """
+        if self.exists():
+            if self.is_file():
+                return self.size == 0
+            elif self.is_dir():
+                if strict:
+                    return len(list(self.select(recursive=True))) == 0
+                else:
+                    return len(list(self.select_file(recursive=True))) == 0
+            else:
+                raise EnvironmentError("'%s' is not either file or directory!" % self)
+        else:
+            raise EnvironmentError("'%s' not exists!" % self)
+    
+    #--- Directory Exclusive Method ---
     def print_big_dir(self, top_n=5):
         """Print ``top_n`` big dir in this dir.
         """
-        if not self.is_dir():
-            raise EnvironmentError("'%s' not exists!" % self)
+        self.assert_is_dir_and_exists()
         
         size_table = sorted(
             [(p, p.dirsize) for p in self.select_dir(recursive=False)],
@@ -2058,8 +2120,7 @@ class Path(PurePath):
     def print_big_file(self, top_n=5):
         """Print ``top_n`` big file in this dir.
         """
-        if not self.is_dir():
-            raise EnvironmentError("'%s' not exists!" % self)
+        self.assert_is_dir_and_exists()
         
         size_table = sorted(
             [(p, p.size) for p in self.select_file(recursive=True)],
@@ -2072,8 +2133,7 @@ class Path(PurePath):
     def print_big_dir_and_big_file(self, top_n=5):
         """Print ``top_n`` big dir and ``top_n`` big file in each dir.
         """
-        if not self.is_dir():
-            raise EnvironmentError("'%s' not exists!" % self)
+        self.assert_is_dir_and_exists()
         
         size_table1 = sorted(
             [(p, p.dirsize) for p in self.select_dir(recursive=False)],
@@ -2089,8 +2149,69 @@ class Path(PurePath):
             )
             for p2, size2 in size_table2[:top_n]:
                 print("    {:<9}    {:<9}".format(repr_data_size(size2), p2.abspath))
+    
+    def file_stat_for_all(self, filters=all_true):
+        """Find out how many files, directorys and total size (Include file in 
+        it's sub-folder) it has for each folder and sub-folder.
+        """
+        self.assert_is_dir_and_exists()
+        
+        from collections import OrderedDict
+        
+        stat = OrderedDict()
+        stat[self.abspath] = {"file": 0, "dir": 0, "size": 0}
+        
+        for p in self.select(recursive=True):
+            if p.is_file():
+                size = p.size
+                while 1:
+                    parent = p.parent
+                    
+                    stat[parent.abspath]["file"] += 1
+                    stat[parent.abspath]["size"] += size
+                     
+                    if parent.abspath == self.abspath:
+                        break
+                     
+                    p = parent
+                    
+            elif p.is_dir():
+                stat[p.abspath] = {"file": 0, "dir": 0, "size": 0}
+                
+                while 1:
+                    parent = p.parent
+                    stat[parent.abspath]["dir"] += 1
+                     
+                    if parent.abspath == self.abspath:
+                        break
+                     
+                    p = parent
+                    
+        return stat
+
+    def file_stat(self, filters=all_true):
+        """Find out how many files, directorys and total size (Include file in 
+        it's sub-folder).
+        """
+        self.assert_is_dir_and_exists()
+        
+        stat = {"file": 0, "dir": 0, "size": 0}
+        
+        for p in self.select(recursive=True):
+            if p.is_file():
+                stat["file"] += 1
+                stat["size"] += p.size     
+            elif p.is_dir():
+                stat["dir"] += 1
+        
+        return stat
 
     def mirror_to(self, dst):
+        """Create a folder that has exactly same structure with this directory.
+        Except, all files are empty file.
+        """
+        self.assert_is_dir_and_exists()
+        
         src = self.abspath
         dst = os.path.abspath(dst)
         if not self.exists():
@@ -2142,8 +2263,7 @@ class Path(PurePath):
             else:
                 return [arg, ]
             
-        if not (self.is_dir() and self.exists()):
-            raise Exception("")
+        self.assert_is_dir_and_exists()
         
         tab = "    "
         
@@ -2320,7 +2440,8 @@ def md5file(abspath, nbytes=0):
     Estimate processing time on:
 
     :param abspath: the absolute path to the file
-    :param nbytes: only has first N bytes of the file. if 0, hash all file
+    :param nbytes: only has first N bytes of the file. if 0 or None, 
+      hash all file
 
     CPU = i7-4600U 2.10GHz - 2.70GHz, RAM = 8.00 GB
     1 second can process 0.25GB data

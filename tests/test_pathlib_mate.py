@@ -57,8 +57,36 @@ def test_attribute():
     assert p.access_datetime >= datetime(2016, 1, 1)
     assert p.create_datetime >= datetime(2016, 1, 1)
     assert "KB" in p.size_in_text
-    
 
+
+def test_change():
+    p = Path(__file__)
+    
+    p1 = p.change(new_ext=".txt")
+    assert p1.ext == ".txt"
+    assert p1.fname == p.fname
+    assert p1.dirname == p.dirname
+    assert p1.dirpath == p.dirpath
+    
+    p1 = p.change(new_fname = "hello")
+    assert p1.ext == p.ext
+    assert p1.fname == "hello"
+    assert p1.dirname == p.dirname
+    assert p1.dirpath == p.dirpath
+    
+    p1 = p.change(new_dirname = "folder")
+    assert p1.ext == p.ext
+    assert p1.fname == p.fname
+    assert p1.dirname == "folder"
+    assert p1.dirpath.endswith("folder")
+    
+    p1 = p.change(new_dirpath=r"C:\User")
+    assert p1.ext == p.ext
+    assert p1.fname == p.fname
+    assert p1.dirname == "User"
+    assert p1.dirpath == r"C:\User"
+    
+    
 def test_moveto():
     p = Path(Path(__file__).dirpath, "testdir", "test.txt")
     p1 = Path(Path(__file__).dirpath, "testdir", "test1.txt")
@@ -175,6 +203,11 @@ def test_sort_by():
     assert is_decreasing([p.size for p in p_list])
 
 
+def test_is_empty():
+    assert Path(__file__).is_empty() is False
+    assert Path(__file__).parent.is_empty() is False
+
+
 def test_print_big_dir():
     """Not need in travis.
     """
@@ -191,6 +224,19 @@ def test_print_big_dir_and_big_file():
     """Not need in travis.
     """
 #     path.print_big_dir_and_big_file()
+
+def test_file_stat():
+    """Not need in travis.
+    """
+    p = Path(__file__).parent
+    stat = p.file_stat()
+    assert stat["file"] >= 12
+    assert stat["dir"] >= 3
+    assert stat["size"] >= 76804
+     
+    all_stat = p.file_stat_for_all()
+    assert all_stat[p.abspath] == stat
+    
 
 def test_mirror_to():
     """Not need in travis.
