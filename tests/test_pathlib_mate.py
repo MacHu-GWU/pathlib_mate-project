@@ -11,11 +11,11 @@ from pathlib_mate.pathlib import _preprocess
 def test_preprocess():
     assert _preprocess("a") == ["a", ]
     assert _preprocess(Path(__file__)) == [str(Path(__file__)), ]
-    
+
     assert _preprocess(["a", ]) == ["a", ]
-    assert _preprocess([Path(__file__),]) == [str(Path(__file__)), ]
-    
-    
+    assert _preprocess([Path(__file__), ]) == [str(Path(__file__)), ]
+
+
 def is_increasing(array):
     if len(array) >= 2:
         for i, j in zip(array[:-1], array[1:]):
@@ -24,8 +24,8 @@ def is_increasing(array):
     else:
         raise ValueError("array size has to be greater than 1.")
     return True
- 
- 
+
+
 def is_decreasing(array):
     if len(array) >= 2:
         for i, j in zip(array[:-1], array[1:]):
@@ -34,8 +34,8 @@ def is_decreasing(array):
     else:
         raise ValueError("array size has to be greater than 1.")
     return True
- 
- 
+
+
 def test_attribute():
     p = Path(__file__).absolute()
     assert isinstance(p.abspath, str)
@@ -61,33 +61,33 @@ def test_attribute():
 
 def test_change():
     p = Path(__file__)
-    
+
     p1 = p.change(new_ext=".txt")
     assert p1.ext == ".txt"
     assert p1.fname == p.fname
     assert p1.dirname == p.dirname
     assert p1.dirpath == p.dirpath
-    
-    p1 = p.change(new_fname = "hello")
+
+    p1 = p.change(new_fname="hello")
     assert p1.ext == p.ext
     assert p1.fname == "hello"
     assert p1.dirname == p.dirname
     assert p1.dirpath == p.dirpath
-    
-    p1 = p.change(new_dirname = "folder")
+
+    p1 = p.change(new_dirname="folder")
     assert p1.ext == p.ext
     assert p1.fname == p.fname
     assert p1.dirname == "folder"
     assert p1.dirpath.endswith("folder")
-    
+
     # because __file__ is OS dependent, so don't test this.
 #     p1 = p.change(new_dirpath=r"C:\User")
 #     assert p1.ext == p.ext
 #     assert p1.fname == p.fname
 #     assert p1.dirname == "User"
 #     assert p1.dirpath == r"C:\User"
-    
-    
+
+
 def test_moveto():
     p = Path(Path(__file__).dirpath, "testdir", "test.txt")
     p1 = Path(Path(__file__).dirpath, "testdir", "test1.txt")
@@ -95,97 +95,98 @@ def test_moveto():
     p3 = Path(Path(__file__).dirpath, "test1.cfg")
 
     assert p1.exists() is False
-      
+
     p.moveto(new_fname="test1")
     assert p.exists() is False
     assert p1.exists() is True
-          
+
     p1.moveto(new_ext=".cfg")
     assert p1.exists() is False
     assert p2.exists() is True
-      
+
     p2.moveto(new_dirpath=p2.parent.dirpath)
     assert p2.exists() is False
     assert p3.exists() is True
-      
+
     p3.rename(p)
     assert p3.exists() is False
     assert p.exists() is True
-    
+
     p = p.moveto(new_fname="test1")
     assert p.exists() is True
-    
+
     p = p.moveto(new_ext=".cfg")
     assert p.exists() is True
-     
+
     p = p.moveto(new_dirpath=p2.parent.dirpath)
     assert p.exists() is True
-    
+
     p = p.moveto(new_dirname="pathlib_mate")
-    assert p.exists() is True 
-    
+    assert p.exists() is True
+
     p = p.moveto(
         new_dirpath=Path(Path(__file__).dirpath, "testdir"),
         new_fname="test",
         new_ext=".txt",
     )
     assert p.exists() is True
-    
+
     p = p.moveto(new_abspath=p.abspath)
     assert p.exists() is True
 
     with pytest.raises(EnvironmentError):
         p.moveto(new_abspath=__file__)
-        
-        
+
+
 def test_copyto():
     p_test = Path(Path(__file__).dirpath, "testdir", "test.txt")
     p_test2 = p_test.copyto(new_fname="test2")
-    
+
     assert p_test.exists() is True
     assert p_test2.exists() is True
-    
+
     p_test2.remove()
     assert p_test2.exists() is False
-    
+
     with pytest.raises(EnvironmentError):
         p_test.copyto(new_abspath=__file__)
 
 
 # Default test dir, the project dir: 'pathlib_mate-project'
 path = Path(".").absolute().parent
- 
+
+
 def test_select():
     def filters(p):
         if p.fname.startswith("f"):
             return True
         else:
             return False
- 
+
     for p in path.select(filters):
         assert p.fname.startswith("f")
- 
- 
+
+
 def test_select_file():
     for p in path.select_file():
         assert p.is_file()
- 
- 
+
+
 def test_select_dir():
     for p in path.select_dir():
         assert p.is_dir()
- 
- 
+
+
 def test_select_by_ext():
     for p in path.select_by_ext(".Bat"):
         assert p.ext.lower() == ".bat"
- 
+
 
 def test_select_by_pattern_in_fname():
     for p in path.select_by_pattern_in_fname("test"):
         assert "test" in p.fname
-        
-         
+
+
 def test_select_by_size():
     for p in path.select_by_size(max_size=1000):
         assert p.size <= 1000
@@ -199,7 +200,7 @@ def test_select_image():
 def test_sort_by():
     p_list = Path.sort_by_size(path.select_file())
     assert is_increasing([p.size for p in p_list])
-      
+
     p_list = Path.sort_by_size(path.select_file(), reverse=True)
     assert is_decreasing([p.size for p in p_list])
 
@@ -219,25 +220,27 @@ def test_print_big_file():
     """Not need in travis.
     """
 #     path.print_big_file()
-    
+
 
 def test_print_big_dir_and_big_file():
     """Not need in travis.
     """
 #     path.print_big_dir_and_big_file()
 
+
 def test_file_stat():
     """Not need in travis.
     """
     p = Path(__file__).parent
     stat = p.file_stat()
-#     assert stat["file"] >= 12
-#     assert stat["dir"] >= 3
-#     assert stat["size"] >= 76804
-     
+
+    assert stat["file"] >= 9
+    assert stat["dir"] >= 3
+    assert stat["size"] >= 40000
+
     all_stat = p.file_stat_for_all()
     assert all_stat[p.abspath] == stat
-    
+
 
 def test_mirror_to():
     """Not need in travis.
@@ -245,13 +248,28 @@ def test_mirror_to():
 #     path = Path("testdir")
 #     path.mirror_to("mirror")
 
+
 def test_backup():
     """Not need in travis.
     """
 #     p = Path(__file__).parent
 #     p.backup(ignore_size_larger_than=1000, case_sensitive=False)
-    
-    
+
+
+def test_autopep8():
+    """Not need in travis.
+    """
+#     p = Path(Path(__file__).parent, "testdir")
+#     p.autopep8()
+
+
+def test_trail_space():
+    """Not need in travis.
+    """
+#     p = Path(Path(__file__).parent, "testdir")
+#     p.trail_space()
+
+
 if __name__ == "__main__":
     import os
     pytest.main(["--tb=native", "-s", os.path.basename(__file__)])

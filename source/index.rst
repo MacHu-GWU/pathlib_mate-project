@@ -3,7 +3,7 @@
 .. _document:
 
 Documentation
-===============================================================================
+=============
 
 
 Attribute
@@ -217,6 +217,9 @@ Utility Tools
 - :meth:`~pathlib_mate.pathlib.Path.print_big_file()`: Display top-n big file in a directory.
 - :meth:`~pathlib_mate.pathlib.Path.print_big_dir_and_big_file()`: Display top-n big dir and big file in a directory.
 - :meth:`~pathlib_mate.pathlib.Path.backup` ``(dst=None, ignore=None, ignore_ext=None, ignore_pattern=None, ignore_size_smaller_than=None, ignore_size_larger_than=None, case_sensitive=False)``: Use .gitignore file format to select files except those user defined, and make a zip archive for that directory.
+- :meth:`~pathlib_mate.pathlib.Path.execute_pyfile()`: execute all python file as main script. usually for testing.
+- :meth:`~pathlib_mate.pathlib.Path.trail_space()` ``(filters=lambda p: p.ext == ".py")``: trail all tailing empty space for each line for selected files.
+- :meth:`~pathlib_mate.pathlib.Path.autopep8()`: auto reformat all python script in pep8 style.
 
 
 Indices and tables

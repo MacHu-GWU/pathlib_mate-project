@@ -14,6 +14,8 @@ line 734::
             '_stat', # <--- PLEASE ADD THIS!
         )
 """
+
+from __future__ import print_function
 import ctypes
 import fnmatch
 import functools
@@ -63,7 +65,7 @@ else:
 __all__ = [
     "PurePath", "PurePosixPath", "PureWindowsPath",
     "Path", "PosixPath", "WindowsPath",
-    ]
+]
 
 #
 # Internals
@@ -253,7 +255,7 @@ class _WindowsFlavour(_Flavour):
         set(['CON', 'PRN', 'AUX', 'NUL']) |
         set(['COM%d' % i for i in range(1, 10)]) |
         set(['LPT%d' % i for i in range(1, 10)])
-        )
+    )
 
     # Interesting findings about extended paths:
     # - '\\?\c:\a', '//?/c:\a' and '//?/c:/a' are all supported
@@ -741,7 +743,7 @@ class PurePath(object):
     __slots__ = (
         '_drv', '_root', '_parts',
         '_str', '_hash', '_pparts', '_cached_cparts',
-        '_stat', # <--- PLEASE ADD THIS!
+        '_stat',  # <--- PLEASE ADD THIS!
     )
 
     def __new__(cls, *args):
@@ -1591,7 +1593,7 @@ class Path(PurePath):
             raise EnvironmentError("'%s' is not a file!" % self)
         if not self.exists():
             raise EnvironmentError("'%s' not exists!" % self)
-        
+
     def assert_is_dir_and_exists(self):
         """Assert it is a directory and exists in file system. 
         """
@@ -1599,11 +1601,11 @@ class Path(PurePath):
             raise EnvironmentError("'%s' is not a directory!" % self)
         if not self.exists():
             raise EnvironmentError("'%s' not exists!" % self)
-        
+
     @property
     def abspath(self):
         r"""Absolute path.
-        
+
         Example: ``C:\User\admin\readme.txt``
         """
         return self.absolute().__str__()
@@ -1611,7 +1613,7 @@ class Path(PurePath):
     @property
     def dirpath(self):
         r"""Parent dir full absolute path.
-        
+
         Example: ``C:\User\admin``
         """
         return self.parent.abspath
@@ -1619,7 +1621,7 @@ class Path(PurePath):
     @property
     def dirname(self):
         """Parent dir name.
-        
+
         Example: ``admin``
         """
         return self.parent.name
@@ -1627,7 +1629,7 @@ class Path(PurePath):
     @property
     def basename(self):
         """File name with extension, path is not included.
-        
+
         Example: ``readme.txt``
         """
         return self.name
@@ -1635,7 +1637,7 @@ class Path(PurePath):
     @property
     def fname(self):
         """File name without extension.
-        
+
         Example: ``readme``
         """
         return self.stem
@@ -1643,7 +1645,7 @@ class Path(PurePath):
     @property
     def ext(self):
         """File extension. If it's a dir, then return empty str.
-        
+
         Example: ``.txt``
         """
         return self.suffix
@@ -1781,7 +1783,8 @@ class Path(PurePath):
 
         高级重命名函数, 允许用于根据路径的各个组成部分进行重命名。
         """
-        p = self.change(new_abspath, new_dirpath, new_dirname, new_fname, new_ext)
+        p = self.change(
+            new_abspath, new_dirpath, new_dirname, new_fname, new_ext)
 
         if p.exists():
             if self.abspath == p.abspath:
@@ -1804,14 +1807,15 @@ class Path(PurePath):
                overwrite=False):
         """Copy this file to other place.
         """
-        p = self.change(new_abspath, new_dirpath, new_dirname, new_fname, new_ext)
+        p = self.change(
+            new_abspath, new_dirpath, new_dirname, new_fname, new_ext)
 
         if self.abspath == p.abspath:
             return p
 
         if not self.exists():
             raise EnvironmentError("'%s' not exists!" % self.abspath)
-        
+
         if p.exists():
             if not overwrite:
                 raise EnvironmentError("'%s' exists!" % p.abspath)
@@ -1824,7 +1828,7 @@ class Path(PurePath):
 
     remove = unlink
 
-    #--- select ---    
+    #--- select ---
     all_true = lambda x: True
 
     def select(self, filters=all_true, recursive=True):
@@ -1970,18 +1974,18 @@ class Path(PurePath):
         ".jpg", ".jpeg", ".png", ".gif", ".tiff",
         ".bmp", ".ppm", ".pgm", ".pbm", ".pnm", ".svg",
     ]
-    
+
     def select_image(self, recursive=True):
         """Select image file.
         """
         return self.select_by_ext(self._image_ext, recursive)
-    
+
     _audio_ext = [
         ".mp3", ".mp4", ".aac", ".m4a", ".wma",
         ".wav", ".ape", ".tak", ".tta",
-        ".3gp", ".webm", ".ogg", 
+        ".3gp", ".webm", ".ogg",
     ]
-    
+
     def select_audio(self, recursive=True):
         """Select audio file.
         """
@@ -1990,9 +1994,9 @@ class Path(PurePath):
     _video_ext = [
         ".avi", ".wmv", ".mkv", ".mp4", ".flv",
         ".vob", ".mov", ".rm", ".rmvb", "3gp", ".3g2", ".nsv", ".webm",
-        ".mpg", ".mpeg", ".m4v", ".iso", 
+        ".mpg", ".mpeg", ".m4v", ".iso",
     ]
-    
+
     def select_video(self, recursive=True):
         """Select video file.
         """
@@ -2009,9 +2013,9 @@ class Path(PurePath):
         """
         ext = [".xls", ".xlsx", ".xlsm", ".xltx", ".xltm"]
         return self.select_by_ext(ext, recursive)
-    
+
     _archive_ext = [".zip", ".rar", ".gz", ".tar.gz", ".tgz", ".7z"]
-    
+
     def select_archive(self, recursive=True):
         """Select compressed archive file.
         """
@@ -2025,67 +2029,65 @@ class Path(PurePath):
             return sorted(p_list, key=lambda p: getattr(p, key), reverse=reverse)
         return sort_by
 
-
     sort_by_abspath = _sort_by("abspath")
     """Sort list of :class:`Path` by absolute path.
     
     :params p_list: list of :class:`Path`
     :params reverse: if False, return in descending order
     """
-    
+
     sort_by_fname = _sort_by("fname")
     """Sort list of :class:`Path` by file name.
     
     :params p_list: list of :class:`Path`
     :params reverse: if False, return in descending order
     """
-    
+
     sort_by_ext = _sort_by("ext")
     """Sort list of :class:`Path` by extension.
     
     :params p_list: list of :class:`Path`
     :params reverse: if False, return in descending order
     """
-    
+
     sort_by_size = _sort_by("size")
     """Sort list of :class:`Path` by file size.
     
     :params p_list: list of :class:`Path`
     :params reverse: if False, return in descending order
     """
-    
+
     sort_by_mtime = _sort_by("mtime")
     """Sort list of :class:`Path` by modify time.
     
     :params p_list: list of :class:`Path`
     :params reverse: if False, return in descending order
     """
-    
+
     sort_by_atime = _sort_by("atime")
     """Sort list of :class:`Path` by access time.
     
     :params p_list: list of :class:`Path`
     :params reverse: if False, return in descending order
     """
-    
+
     sort_by_ctime = _sort_by("ctime")
     """Sort list of :class:`Path` by create time.
     
     :params p_list: list of :class:`Path`
     :params reverse: if False, return in descending order
     """
-    
+
     sort_by_md5 = _sort_by("md5")
     """Sort list of :class:`Path` by md5.
     
     :params p_list: list of :class:`Path`
     :params reverse: if False, return in descending order
     """
-    
-    
+
     def is_empty(self, strict=True):
         """Test:
-        
+
         - If it's a file, check if it is a emtpty file. (0 bytes)
         - If it's a directory, check if there's no file and dir in it. But if
           ``strict = False``, then only check if there's no file in it.
@@ -2099,16 +2101,17 @@ class Path(PurePath):
                 else:
                     return len(list(self.select_file(recursive=True))) == 0
             else:
-                raise EnvironmentError("'%s' is not either file or directory!" % self)
+                raise EnvironmentError(
+                    "'%s' is not either file or directory!" % self)
         else:
             raise EnvironmentError("'%s' not exists!" % self)
-    
+
     #--- Directory Exclusive Method ---
     def print_big_dir(self, top_n=5):
         """Print ``top_n`` big dir in this dir.
         """
         self.assert_is_dir_and_exists()
-        
+
         size_table = sorted(
             [(p, p.dirsize) for p in self.select_dir(recursive=False)],
             key=lambda x: x[1],
@@ -2121,7 +2124,7 @@ class Path(PurePath):
         """Print ``top_n`` big file in this dir.
         """
         self.assert_is_dir_and_exists()
-        
+
         size_table = sorted(
             [(p, p.size) for p in self.select_file(recursive=True)],
             key=lambda x: x[1],
@@ -2134,7 +2137,7 @@ class Path(PurePath):
         """Print ``top_n`` big dir and ``top_n`` big file in each dir.
         """
         self.assert_is_dir_and_exists()
-        
+
         size_table1 = sorted(
             [(p, p.dirsize) for p in self.select_dir(recursive=False)],
             key=lambda x: x[1],
@@ -2148,70 +2151,94 @@ class Path(PurePath):
                 reverse=True,
             )
             for p2, size2 in size_table2[:top_n]:
-                print("    {:<9}    {:<9}".format(repr_data_size(size2), p2.abspath))
-    
+                print("    {:<9}    {:<9}".format(
+                    repr_data_size(size2), p2.abspath))
+
     def file_stat_for_all(self, filters=all_true):
         """Find out how many files, directorys and total size (Include file in 
         it's sub-folder) it has for each folder and sub-folder.
+
+        :returns: stat, a dict like ``{"directory path": {
+          "file": number of files, "dir": number of directorys, 
+          "size": total size in bytes}}``
+
+        **中文文档**
+
+        返回一个目录中的每个子目录的, 文件, 文件夹, 大小的统计数据。
         """
         self.assert_is_dir_and_exists()
-        
+
         from collections import OrderedDict
-        
+
         stat = OrderedDict()
         stat[self.abspath] = {"file": 0, "dir": 0, "size": 0}
-        
+
         for p in self.select(recursive=True):
             if p.is_file():
                 size = p.size
                 while 1:
                     parent = p.parent
-                    
+
                     stat[parent.abspath]["file"] += 1
                     stat[parent.abspath]["size"] += size
-                     
+
                     if parent.abspath == self.abspath:
                         break
-                     
+
                     p = parent
-                    
+
             elif p.is_dir():
                 stat[p.abspath] = {"file": 0, "dir": 0, "size": 0}
-                
+
                 while 1:
                     parent = p.parent
                     stat[parent.abspath]["dir"] += 1
-                     
+
                     if parent.abspath == self.abspath:
                         break
-                     
+
                     p = parent
-                    
+
         return stat
 
     def file_stat(self, filters=all_true):
         """Find out how many files, directorys and total size (Include file in 
         it's sub-folder).
+
+        :returns: stat, a dict like ``{"file": number of files, 
+          "dir": number of directorys, "size": total size in bytes}``
+
+        **中文文档**
+
+        返回一个目录中的文件, 文件夹, 大小的统计数据。
         """
         self.assert_is_dir_and_exists()
-        
+
         stat = {"file": 0, "dir": 0, "size": 0}
-        
+
         for p in self.select(recursive=True):
             if p.is_file():
                 stat["file"] += 1
-                stat["size"] += p.size     
+                stat["size"] += p.size
             elif p.is_dir():
                 stat["dir"] += 1
-        
+
         return stat
 
     def mirror_to(self, dst):
         """Create a folder that has exactly same structure with this directory.
         Except, all files are empty file.
+
+        :param dst: distination directory. The directory can't exists before
+        you execute this.
+
+        **中文文档**
+
+        创建一个目录的镜像拷贝, 与拷贝操作不同的是, 文件的副本只是在文件名上
+        与原件一致, 但是是空文件, 完全没有内容, 文件大小为0。
         """
         self.assert_is_dir_and_exists()
-        
+
         src = self.abspath
         dst = os.path.abspath(dst)
         if not self.exists():
@@ -2235,38 +2262,42 @@ class Path(PurePath):
                 with open(abspath, "wb") as _:
                     pass
 
-    def backup(self, dst=None, 
-               ignore=None, 
-               ignore_ext=None, 
+    def backup(self, dst=None,
+               ignore=None,
+               ignore_ext=None,
                ignore_pattern=None,
                ignore_size_smaller_than=None,
                ignore_size_larger_than=None,
                case_sensitive=False):
         """The backup utility method. Basically it just add files that need to be
         backupped to zip archives.
-    
+
         :param filename: the output file name, DO NOT NEED FILE EXTENSION.
         :param root_dir: the directory you want to backup.
         :param ignore: file or directory defined in this list will be ignored.
         :param ignore_ext: file with extensions defined in this list will be ignored.
         :param ignore_pattern: any file or directory that contains this pattern
           will be ignored.
+
+        **中文文档**
+
+        为一个目录创建一个备份压缩包。可以通过过滤器选择你要备份的文件。
         """
         from zipfile import ZipFile
 
         def preprocess_arg(arg):
             if arg is None:
                 return []
-            
+
             if isinstance(arg, (tuple, list)):
                 return list(arg)
             else:
                 return [arg, ]
-            
+
         self.assert_is_dir_and_exists()
-        
+
         tab = "    "
-        
+
         # Step 0, preprocess input argument
         surfix = " %s.zip" % datetime.now().strftime("%Y-%m-%d %Hh-%Mm-%Ss")
         if dst is None:
@@ -2277,90 +2308,151 @@ class Path(PurePath):
                 dst = dst[:-4]
             dst = Path(Path(dst).abspath + surfix).abspath
         print("Backup '%s' to '%s'..." % (self.abspath, dst))
-            
+
         # Step 1, calculate files to backup
         print(tab + "1. Calculate files...")
-        
+
         ignore = preprocess_arg(ignore)
         for i in ignore:
             if i.startswith("/") or i.startswith("\\"):
                 raise ValueError
-        
+
         ignore_ext = preprocess_arg(ignore_ext)
         for ext in ignore_ext:
             if not ext.startswith("."):
                 raise ValueError
-        
-        ignore_pattern = preprocess_arg(ignore_pattern) 
-        
+
+        ignore_pattern = preprocess_arg(ignore_pattern)
+
         if case_sensitive:
             pass
         else:
             ignore = [i.lower() for i in ignore]
             ignore_ext = [i.lower() for i in ignore_ext]
             ignore_pattern = [i.lower() for i in ignore_pattern]
-            
+
         def filters(p):
             relpath = p.relative_to(self).abspath
             if not case_sensitive:
                 relpath = relpath.lower()
-            
+
             # ignore
             for i in ignore:
                 if relpath.startswith(i):
                     return False
-            
+
             # ignore_ext
             if case_sensitive:
                 ext = p.ext
             else:
                 ext = p.ext.lower()
-                
+
             if ext in ignore_ext:
                 return False
-            
+
             # ignore_pattern
             for pattern in ignore_pattern:
                 if pattern in relpath:
                     return False
-            
+
             # ignore_size_smaller_than
             if ignore_size_smaller_than:
                 if p.size < ignore_size_smaller_than:
                     return False
-                
+
             # ignore_size_larger_than
             if ignore_size_larger_than:
                 if p.size > ignore_size_larger_than:
                     return False
-            
+
             return True
-        
+
         total_size = 0
         selected = list()
         for p in self.glob("**/*"):
             if filters(p):
                 selected.append(p)
                 total_size += p.size
-        
+
         print(tab * 2 + "Done, got %s files, total size is %s." % (
             len(selected), repr_data_size(total_size)))
-        
+
         # Step 2, write files to zip archive
         print(tab + "2. Backup files...")
         current_dir = os.getcwd()
-        
+
         with ZipFile(dst, "w") as f:
             os.chdir(self.abspath)
             for p in selected:
                 relpath = p.relative_to(self).__str__()
                 f.write(relpath)
-    
+
         os.chdir(current_dir)
-    
+
         print(tab * 2 + "Complete!")
-    
-    
+
+    def execute_pyfile(self):
+        """Execute every ``.py`` file as main script.
+
+        **中文文档**
+
+        将目录下的所有Python文件作为主脚本用当前解释器运行。
+        """
+        import subprocess
+
+        self.assert_is_dir_and_exists()
+
+        for p in self.select_by_ext(".py"):
+            if six.PY2:
+                subprocess.Popen('python2 "%s"' % p.abspath)
+            elif six.PY3:
+                subprocess.Popen('python3 "%s"' % p.abspath)
+            else:
+                raise Exception
+
+    def trail_space(self, filters=lambda p: p.ext == ".py"):
+        """Trail white space at end of each line for every ``.py`` file.
+
+        **中文文档**
+
+        将目录下的所有被选择的文件中行末的空格删除。
+        """
+        self.assert_is_dir_and_exists()
+
+        for p in self.select_file(filters):
+            try:
+                with open(p.abspath, "rb") as f:
+                    lines = list()
+                    for line in f:
+                        lines.append(line.decode("utf-8").rstrip())
+
+                with open(p.abspath, "wb") as f:
+                    f.write("\n".join(lines).encode("utf-8"))
+
+            except Exception as e:
+                raise e
+
+    def autopep8(self):
+        """Auto convert your python code in a directory to pep8 styled code.
+
+        **中文文档**
+
+        将目录下的所有Python文件用pep8风格格式化。增加其可读性和规范性。
+        """
+        import autopep8
+
+        self.assert_is_dir_and_exists()
+
+        for p in self.select_by_ext(".py"):
+            with open(p.abspath, "rb") as f:
+                code = f.read().decode("utf-8")
+
+            formatted_code = autopep8.fix_code(code)
+
+            with open(p.abspath, "wb") as f:
+                f.write(formatted_code.encode("utf-8"))
+
+
 class PosixPath(Path, PurePosixPath):
     __slots__ = ()
 
@@ -2390,7 +2482,7 @@ def _preprocess(path_or_path_list):
         path_or_path_list = [str(path) for path in path_or_path_list]
         return path_or_path_list
     else:
-        path_or_path_list = [path_or_path_list,]
+        path_or_path_list = [path_or_path_list, ]
         return _preprocess(path_or_path_list)
 
 
@@ -2430,7 +2522,7 @@ def repr_data_size(size_in_bytes, precision=2):
         if size_in_bytes < 1024:
             break
     template = "{0:.%sf} {1}" % precision
-    s = template.format(size_in_bytes + mod/1024.0, magnitude_of_data[index])
+    s = template.format(size_in_bytes + mod / 1024.0, magnitude_of_data[index])
     return s
 
 
