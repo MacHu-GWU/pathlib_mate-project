@@ -94,15 +94,35 @@ First, let's use a simple file for demonstration ``C:\Users\admin\readme.txt``:
 	datetime.datetime(2016, 1, 1, 5, 0) # (access_datetime, create_datetime is similar)
 
 
+.. code-block:: python
+
+	>>> p = Path(r"C:\Users\admin")
+	C:\Users\admin\
+
+:meth:`~pathlib_mate.pathlib.Path.n_file`
+
+.. code-block:: python
+
+	>>> p.n_file # count how many file under this directory
+	1000
+
+:meth:`~pathlib_mate.pathlib.Path.n_dir`
+
+.. code-block:: python
+
+	>>> p.n_dir # count how many folders under this directory
+	10
+
+
 Method
 ------
 
 **Rename / Cut a file**: :meth:`~pathlib_mate.pathlib.Path.moveto()`
 
-The default :meth:`~pathlib_mate.pathlib.Path.rename` method is not good enough. ``pathlib_mate`` provide a new utility method ``Path.moveto(new_abspath=None, new_dirpath=None, new_dirname=None, new_fname=None, new_ext=None)`` making rename way more easier.
+The default :meth:`~pathlib_mate.pathlib.Path.rename` method is not good enough. ``pathlib_mate`` provide a new utility method ``Path.moveto(new_abspath=None, new_dirpath=None, new_dirname=None, new_basename=None, new_fname=None, new_ext=None, makedirs=False)`` making rename way more easier.
 
 .. code-block:: python
-	
+
 	# You can easily update any parts of the path
 	# Plus a new Path instance will return
 	>>> p_new = p.moveto(new_dirpath=r"C:\User\guest")
@@ -119,7 +139,7 @@ The default :meth:`~pathlib_mate.pathlib.Path.rename` method is not good enough.
 
 **Copy a file**: :meth:`~pathlib_mate.pathlib.Path.copyto()`
 
-In addition, ``Path.copyto(new_abspath=None, new_dirpath=None, new_dirname=None, new_fname=None, new_ext=None, overwrite=False)`` works same as ``Path.moveto()``, but it's a **copy operation**. By default, **it doesn't allow overwrite**.
+In addition, ``Path.copyto(new_abspath=None, new_dirpath=None, new_dirname=None, new_fname=None, new_basename=None, new_ext=None, overwrite=False, makedirs=False)`` works same as ``Path.moveto()``, but it's a **copy operation**. By default, **it doesn't allow overwrite**.
 
 
 **Remove a file**: :meth:`~pathlib_mate.pathlib.Path.remove()`
@@ -195,7 +215,7 @@ Sort set of path is super easy in ``pathlib_mate``:
 	result = path.select_file()
 	# sort file by its size, from largest to smallest
 	>>> for p in Path.sort_by_size(result, reverse=True):
-	... 
+	...
 
 In addition, you have these options for sorting.
 
@@ -222,9 +242,11 @@ Utility Tools
 - :meth:`~pathlib_mate.pathlib.Path.autopep8()`: auto reformat all python script in pep8 style.
 
 
-Indices and tables
-==================
+.. include:: author.rst
 
-* :ref:`genindex`
-* :ref:`modindex`
-* :ref:`search`
+
+API Document
+------------
+
+* :ref:`by Name <genindex>`
+* :ref:`by Structure <modindex>`

@@ -488,6 +488,7 @@ class _PosixFlavour(_Flavour):
                 raise RuntimeError("Can't determine home directory "
                                    "for %r" % username)
 
+
 _windows_flavour = _WindowsFlavour()
 _posix_flavour = _PosixFlavour()
 
@@ -600,6 +601,7 @@ def _make_selector(pattern_parts):
     else:
         cls = _PreciseSelector
     return cls(pat, child_parts)
+
 
 if hasattr(functools, "lru_cache"):
     _make_selector = functools.lru_cache()(_make_selector)
@@ -1602,6 +1604,7 @@ class Path(PurePath):
         if not self.exists():
             raise EnvironmentError("'%s' not exists!" % self)
 
+    #--- property methods that returns a value ---
     @property
     def abspath(self):
         r"""Absolute path.
@@ -1739,9 +1742,40 @@ class Path(PurePath):
         """
         return datetime.fromtimestamp(self.ctime)
 
+    #--- methods return another Path ---
+    def drop_parts(self, n=1):
+        """
+
+        :param n: integer, number of parts you wants to drop from ends.
+          n has to greater equal than 0.
+
+        Example::
+
+            >>> Path("/usr/bin/python").drop_parts(1)
+            "/user/bin"
+
+            >>> Path("/usr/bin/python").drop_parts(2)
+            "/user"
+        """
+        return Path(*self.parts[:-n])
+
+    def append_parts(self, *parts):
+        """Append some parts to the end of this path.
+
+        Example::
+
+            >>> Path("/usr/bin/python").append_parts("lib")
+            "/user/bin/python/lib"
+
+            >>> Path("/usr/bin/python").append_parts("lib", "core.py")
+            "/user/bin/python/lib/core.py"
+        """
+        return Path(self, *parts)
+
     def change(self,
                new_abspath=None,
                new_dirpath=None, new_dirname=None,
+               new_basename=None,
                new_fname=None,
                new_ext=None):
         """Return a new :class:`Path` object with updated information.
@@ -1762,66 +1796,110 @@ class Path(PurePath):
         elif (new_dirpath is not None) and (new_dirname is not None):
             raise ValueError("Cannot having both new_dirpath and new_dirname!")
 
-        if new_fname is None:
-            new_fname = self.fname
+        if new_basename is None:
+            if new_fname is None:
+                new_fname = self.fname
+            if new_ext is None:
+                new_ext = self.ext
+            new_basename = new_fname + new_ext
+        else:
+            if new_fname is None and new_ext is None:
+                if new_basename is None:
+                    new_basename = self.basename
+            else:
+                raise ValueError("Cannot having both new_basename, "
+                                 "new_fname, new_ext!")
 
-        if new_ext is None:
-            new_ext = self.ext
-
-        return Path(new_dirpath, new_fname + new_ext)
+        return Path(new_dirpath, new_basename)
 
     def moveto(self,
                new_abspath=None,
                new_dirpath=None, new_dirname=None,
+               new_basename=None,
                new_fname=None,
                new_ext=None,
-               overwrite=False):
-        """An advanced ``Path.rename`` method provide ability to rename by parts of
-        a path. A new ``Path`` instance will returns.
+               overwrite=False,
+               makedirs=False):
+        """An advanced ``Path.rename`` method provide ability to rename by 
+        each components of a path. A new ``Path`` instance will returns.
 
         **中文文档**
 
-        高级重命名函数, 允许用于根据路径的各个组成部分进行重命名。
+        高级重命名函数, 允许用于根据路径的各个组成部分进行重命名。但和os.rename
+        方法一样, 需要保证母文件夹存在。
         """
         p = self.change(
-            new_abspath, new_dirpath, new_dirname, new_fname, new_ext)
+            new_abspath=new_abspath,
+            new_dirpath=new_dirpath,
+            new_dirname=new_dirname,
+            new_basename=new_basename,
+            new_fname=new_fname,
+            new_ext=new_ext,
+        )
 
+        rename_flag = False
+
+        # 如果新路径存在
         if p.exists():
-            if self.abspath == p.abspath:
-                pass
+            # 如果允许覆盖
+            if overwrite:
+                # 如果两个路径不同, 才进行move
+                if not self.abspath == p.abspath:
+                    rename_flag = True
+            # 如果不允许覆盖
             else:
-                if overwrite:
-                    self.rename(p)
-                else:
-                    raise EnvironmentError("'%s' exists!" % p.abspath)
+                raise EnvironmentError("'%s' exists!" % p.abspath)
         else:
-            self.rename(p)
+            rename_flag = True
 
+        if rename_flag:
+            if makedirs:
+                parent = p.parent
+                if not parent.exists():
+                    os.makedirs(parent.abspath)
+            self.rename(p)
         return p
 
     def copyto(self,
                new_abspath=None,
                new_dirpath=None, new_dirname=None,
+               new_basename=None,
                new_fname=None,
                new_ext=None,
-               overwrite=False):
+               overwrite=False,
+               makedirs=False):
         """Copy this file to other place.
         """
         p = self.change(
-            new_abspath, new_dirpath, new_dirname, new_fname, new_ext)
-
-        if self.abspath == p.abspath:
-            return p
-
+            new_abspath=new_abspath,
+            new_dirpath=new_dirpath,
+            new_dirname=new_dirname,
+            new_basename=new_basename,
+            new_fname=new_fname,
+            new_ext=new_ext,
+        )
+        # 如果源文件不存在
         if not self.exists():
             raise EnvironmentError("'%s' not exists!" % self.abspath)
 
+        copy_flag = False
+
         if p.exists():
-            if not overwrite:
-                raise EnvironmentError("'%s' exists!" % p.abspath)
+            # 如果允许覆盖
+            if overwrite:
+                # 如果两个路径不同, 才进行copy
+                if not self.abspath == p.abspath:
+                    copy_flag = True
             else:
-                shutil.copy(self.abspath, p.abspath)
+                raise EnvironmentError("'%s' exists!" % p.abspath)
         else:
+            copy_flag = True
+
+        if copy_flag:
+            if makedirs:
+                parent = p.parent
+                if not parent.exists():
+                    os.makedirs(parent.abspath)
             shutil.copy(self.abspath, p.abspath)
 
         return p
@@ -1829,7 +1907,7 @@ class Path(PurePath):
     remove = unlink
 
     #--- select ---
-    all_true = lambda x: True
+    def all_true(x): return True
 
     def select(self, filters=all_true, recursive=True):
         """Select path by criterion.
@@ -1875,6 +1953,48 @@ class Path(PurePath):
             if p.is_dir():
                 yield p
 
+    @property
+    def n_file(self):
+        """Count how many files in this directory.
+        """
+        self.assert_is_dir_and_exists()
+        n = 0
+        for _ in self.select_file(recursive=True):
+            n += 1
+        return n
+
+    @property
+    def n_dir(self):
+        """Count how many folders in this directory.
+        """
+        self.assert_is_dir_and_exists()
+        n = 0
+        for _ in self.select_dir(recursive=True):
+            n += 1
+        return n
+
+    @property
+    def n_subfile(self):
+        """Count how many files in this directory (doesn't include files in 
+        sub folders).
+        """
+        self.assert_is_dir_and_exists()
+        n = 0
+        for _ in self.select_file(recursive=False):
+            n += 1
+        return n
+
+    @property
+    def n_subdir(self):
+        """Count how many folders in this directory (doesn't include folder in 
+        sub folders).
+        """
+        self.assert_is_dir_and_exists()
+        n = 0
+        for _ in self.select_dir(recursive=False):
+            n += 1
+        return n
+
     #--- Select by built-in criterion ---
     def select_by_ext(self, ext, recursive=True):
         """Select file path by extension.
@@ -1886,7 +2006,8 @@ class Path(PurePath):
         选择与预定义的若干个扩展名匹配的文件。
         """
         ext = [ext.strip().lower() for ext in _preprocess(ext)]
-        filters = lambda p: p.suffix.lower() in ext
+
+        def filters(p): return p.suffix.lower() in ext
         return self.select_file(filters, recursive)
 
     def select_by_pattern_in_fname(self, pattern, recursive=True, case_sensitive=False):
@@ -1899,9 +2020,10 @@ class Path(PurePath):
         """
         if case_sensitive:
             pattern = pattern.lower()
-            filters = lambda p: pattern in p.fname.lower()
+
+            def filters(p): return pattern in p.fname.lower()
         else:
-            filters = lambda p: pattern in p.fname
+            def filters(p): return pattern in p.fname
 
         return self.select_file(filters, recursive)
 
@@ -1914,9 +2036,10 @@ class Path(PurePath):
         """
         if case_sensitive:
             pattern = pattern.lower()
-            filters = lambda p: pattern in p.abspath.lower()
+
+            def filters(p): return pattern in p.abspath.lower()
         else:
-            filters = lambda p: pattern in p.abspath
+            def filters(p): return pattern in p.abspath
 
         return self.select_file(filters, recursive)
 
@@ -1927,7 +2050,7 @@ class Path(PurePath):
 
         选择所有文件大小在一定范围内的文件。
         """
-        filters = lambda p: min_size <= p.size <= max_size
+        def filters(p): return min_size <= p.size <= max_size
         return self.select_file(filters, recursive)
 
     def select_by_mtime(self, min_time=0, max_time=4102462800.0, recursive=True):
@@ -1940,7 +2063,7 @@ class Path(PurePath):
 
         选择所有mtime在一定范围内的文件。
         """
-        filters = lambda p: min_time <= p.mtime <= max_time
+        def filters(p): return min_time <= p.mtime <= max_time
         return self.select_file(filters, recursive)
 
     def select_by_atime(self, min_time=0, max_time=4102462800.0, recursive=True):
@@ -1953,7 +2076,7 @@ class Path(PurePath):
 
         选择所有atime在一定范围内的文件。
         """
-        filters = lambda p: min_time <= p.atime <= max_time
+        def filters(p): return min_time <= p.atime <= max_time
         return self.select_file(filters, recursive)
 
     def select_by_ctime(self, min_time=0, max_time=4102462800.0, recursive=True):
@@ -1966,7 +2089,7 @@ class Path(PurePath):
 
         选择所有ctime在一定范围内的文件。
         """
-        filters = lambda p: min_time <= p.ctime <= max_time
+        def filters(p): return min_time <= p.ctime <= max_time
         return self.select_file(filters, recursive)
 
     #--- Select Special File Type ---
@@ -2391,7 +2514,7 @@ class Path(PurePath):
 
         print(tab * 2 + "Complete!")
 
-    def execute_pyfile(self):
+    def execute_pyfile(self, py_exe=None):
         """Execute every ``.py`` file as main script.
 
         **中文文档**
@@ -2402,13 +2525,14 @@ class Path(PurePath):
 
         self.assert_is_dir_and_exists()
 
-        for p in self.select_by_ext(".py"):
+        if py_exe is None:
             if six.PY2:
-                subprocess.Popen('python2 "%s"' % p.abspath)
+                py_exe = "python2"
             elif six.PY3:
-                subprocess.Popen('python3 "%s"' % p.abspath)
-            else:
-                raise Exception
+                py_exe = "python3"
+
+        for p in self.select_by_ext(".py"):
+            subprocess.Popen('%s "%s"' % (py_exe, p.abspath))
 
     def trail_space(self, filters=lambda p: p.ext == ".py"):
         """Trail white space at end of each line for every ``.py`` file.

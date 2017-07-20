@@ -2,10 +2,37 @@
 # -*- coding: utf-8 -*-
 
 import os
+import shutil
 import pytest
 from datetime import datetime
 from pathlib_mate import Path
 from pathlib_mate.pathlib import _preprocess
+
+
+def setup_module(module):
+    p = Path(__file__).change(new_basename="app")
+    try:
+        shutil.copytree(p.abspath, p.change(new_basename="wow").abspath)
+    except Exception as e:
+        pass
+
+    p = Path(__file__).change(new_basename="file_to_move.txt")
+    with open(p.abspath, "wb") as f:
+        f.write("test file".encode("utf-8"))
+
+    p = Path(__file__).change(new_basename="file_to_copy.txt")
+    with open(p.abspath, "wb") as f:
+        f.write("test file".encode("utf-8"))
+
+
+def teardown_module(module):
+    reserved = ["app", "test_all.py", "test_pathlib_mate.py"]
+    for p in Path(__file__).parent.iterdir():
+        if p.basename not in reserved:
+            if p.is_dir():
+                shutil.rmtree(p.abspath)
+            else:
+                os.remove(p.abspath)
 
 
 def test_preprocess():
@@ -59,6 +86,22 @@ def test_attribute():
     assert "KB" in p.size_in_text
 
 
+def test_drop_parts():
+    p = Path(__file__)
+    p1 = p.drop_parts(1)
+    assert len(p.parts) == len(p1.parts) + 1
+    p1 = p.drop_parts(2)
+    assert len(p.parts) == len(p1.parts) + 2
+
+
+def test_append_parts():
+    p = Path(__file__).parent
+    p1 = p.append_parts("a")
+    assert len(p.parts) == len(p1.parts) - 1
+    p1 = p.append_parts("a", "b")
+    assert len(p.parts) == len(p1.parts) - 2
+
+
 def test_change():
     p = Path(__file__)
 
@@ -70,6 +113,12 @@ def test_change():
 
     p1 = p.change(new_fname="hello")
     assert p1.ext == p.ext
+    assert p1.fname == "hello"
+    assert p1.dirname == p.dirname
+    assert p1.dirpath == p.dirpath
+
+    p1 = p.change(new_basename="hello.txt")
+    assert p1.ext == ".txt"
     assert p1.fname == "hello"
     assert p1.dirname == p.dirname
     assert p1.dirpath == p.dirpath
@@ -89,67 +138,56 @@ def test_change():
 
 
 def test_moveto():
-    p = Path(Path(__file__).dirpath, "testdir", "test.txt")
-    p1 = Path(Path(__file__).dirpath, "testdir", "test1.txt")
-    p2 = Path(Path(__file__).dirpath, "testdir", "test1.cfg")
-    p3 = Path(Path(__file__).dirpath, "test1.cfg")
+    # move file
+    p_file = Path(__file__).change(new_basename="file_to_move.txt")
+    p_file_new = p_file.moveto(new_ext=".rst")  # change extension
+    assert p_file.exists() is False
+    assert p_file_new.exists() is True
+    p_file = p_file_new.moveto(new_ext=".txt")  # move back
 
-    assert p1.exists() is False
-
-    p.moveto(new_fname="test1")
-    assert p.exists() is False
-    assert p1.exists() is True
-
-    p1.moveto(new_ext=".cfg")
-    assert p1.exists() is False
-    assert p2.exists() is True
-
-    p2.moveto(new_dirpath=p2.parent.dirpath)
-    assert p2.exists() is False
-    assert p3.exists() is True
-
-    p3.rename(p)
-    assert p3.exists() is False
-    assert p.exists() is True
-
-    p = p.moveto(new_fname="test1")
-    assert p.exists() is True
-
-    p = p.moveto(new_ext=".cfg")
-    assert p.exists() is True
-
-    p = p.moveto(new_dirpath=p2.parent.dirpath)
-    assert p.exists() is True
-
-    p = p.moveto(new_dirname="pathlib_mate")
-    assert p.exists() is True
-
-    p = p.moveto(
-        new_dirpath=Path(Path(__file__).dirpath, "testdir"),
-        new_fname="test",
-        new_ext=".txt",
-    )
-    assert p.exists() is True
-
-    p = p.moveto(new_abspath=p.abspath)
-    assert p.exists() is True
-
+    # move file into not existing folder
     with pytest.raises(EnvironmentError):
-        p.moveto(new_abspath=__file__)
+        p_file.moveto(new_dirname="NOT EXIST FOLDER")
+
+    # move file into not existsing folder, and create the folder
+    p_file_new = p_file.moveto(
+        new_abspath=Path(__file__).parent.
+        append_parts("NOT EXIST FOLDER", "file_to_move.txt"),
+        makedirs=True,
+    )
+    p_file = p_file_new.moveto(new_abspath=p_file.abspath)
+
+    # move directory
+    p_dir = Path(__file__).change(new_basename="wow")
+    n_files = p_dir.n_file
+    p_dir_new = p_dir.moveto(new_basename="wow1")
+    assert n_files == p_dir_new.n_file
+    p_dir = p_dir_new.moveto(new_basename="wow")
 
 
 def test_copyto():
-    p_test = Path(Path(__file__).dirpath, "testdir", "test.txt")
-    p_test2 = p_test.copyto(new_fname="test2")
+    # copy file
+    p_file = Path(__file__).change(new_basename="file_to_copy.txt")
+    p_file_new = p_file.copyto(new_ext=".rst")  # change extension
+    assert p_file.exists() is True
+    assert p_file_new.exists() is True
 
-    assert p_test.exists() is True
-    assert p_test2.exists() is True
-
-    p_test2.remove()
-    assert p_test2.exists() is False
-
+    # copy file into not existing folder
     with pytest.raises(EnvironmentError):
-        p_test.copyto(new_abspath=__file__)
+        p_file.copyto(new_dirname="NOT EXIST FOLDER")
+
+    # copy file into not existsing folder, and create the folder
+    p_file_new = p_file.copyto(
+        new_abspath=Path(__file__).parent.
+        append_parts("NOT EXIST FOLDER", "file_to_copy.txt"),
+        makedirs=True,
+    )
+
+    # copy directory
+    p_dir = Path(__file__).change(new_basename="wow")
+    n_files = p_dir.n_file
+    p_dir_new = p_dir.moveto(new_basename="wow1")
+    assert n_files == p_dir_new.n_file
 
 
 # Default test dir, the project dir: 'pathlib_mate-project'
@@ -234,9 +272,9 @@ def test_file_stat():
     p = Path(__file__).parent
     stat = p.file_stat()
 
-    assert stat["file"] >= 9
-    assert stat["dir"] >= 3
-    assert stat["size"] >= 40000
+    assert stat["file"] >= 6
+    assert stat["dir"] >= 2
+    assert stat["size"] >= 11000
 
     all_stat = p.file_stat_for_all()
     assert all_stat[p.abspath] == stat
@@ -245,28 +283,28 @@ def test_file_stat():
 def test_mirror_to():
     """Not need in travis.
     """
-#     path = Path("testdir")
+    path = Path("app")
 #     path.mirror_to("mirror")
 
 
 def test_backup():
     """Not need in travis.
     """
-#     p = Path(__file__).parent
+    p = Path(__file__).parent
 #     p.backup(ignore_size_larger_than=1000, case_sensitive=False)
 
 
 def test_autopep8():
     """Not need in travis.
     """
-#     p = Path(Path(__file__).parent, "testdir")
+    p = Path(__file__).change(new_basename="app")
 #     p.autopep8()
 
 
 def test_trail_space():
     """Not need in travis.
     """
-#     p = Path(Path(__file__).parent, "testdir")
+    p = Path(__file__).change(new_basename="app")
 #     p.trail_space()
 
 

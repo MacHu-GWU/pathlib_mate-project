@@ -95,7 +95,8 @@ def find_venv_DST():
         DST = os.path.join(dir_path, "Lib", "site-packages", PKG_NAME)
     elif SYS_NAME in ["Darwin", "Linux"]:
         python_version = find_linux_venv_py_version()
-        DST = os.path.join(dir_path, "lib", python_version, "site-packages", PKG_NAME)
+        DST = os.path.join(dir_path, "lib", python_version,
+                           "site-packages", PKG_NAME)
 
     return DST
 
@@ -137,13 +138,14 @@ def check_need_install():
     for root, _, basename_list in os.walk(SRC):
         if os.path.basename(root) != "__pycache__":
             for basename in basename_list:
-                src = os.path.join(root, basename)
-                dst = os.path.join(root.replace(SRC, DST), basename)
-                if os.path.exists(dst):
-                    if md5_of_file(src) != md5_of_file(dst):
+                if not basename.endswith(".pyc"):
+                    src = os.path.join(root, basename)
+                    dst = os.path.join(root.replace(SRC, DST), basename)
+                    if os.path.exists(dst):
+                        if md5_of_file(src) != md5_of_file(dst):
+                            return True
+                    else:
                         return True
-                else:
-                    return True
     return need_install_flag
 
 
@@ -161,21 +163,35 @@ def install():
     # remove __pycache__ folder and *.pyc file
     print("Remove *.pyc file ...")
     pyc_folder_list = list()
+    pyc_file_list = list()
     for root, _, basename_list in os.walk(SRC):
         if os.path.basename(root) == "__pycache__":
             pyc_folder_list.append(root)
+        for basename in basename_list:
+            if basename.endswith(".pyc"):
+                abspath = os.path.join(root, basename)
+                pyc_file_list.append(abspath)
 
     for folder in pyc_folder_list:
-        shutil.rmtree(folder)
+        try:
+            shutil.rmtree(folder)
+        except:
+            pass
+    for abspath in pyc_file_list:
+        try:
+            os.remove(abspath)
+        except:
+            pass
     print("    all *.pyc file has been removed.")
 
     # install this package to all python version
     print("Uninstall %s from %s ..." % (PKG_NAME, DST))
-    try:
-        shutil.rmtree(DST)
-        print("    Successfully uninstall %s" % PKG_NAME)
-    except Exception as e:
-        print("    %s" % e)
+    if os.path.exists(DST):
+        try:
+            shutil.rmtree(DST)
+            print("    Successfully uninstall %s" % PKG_NAME)
+        except Exception as e:
+            print("    %s" % e)
 
     print("Install %s to %s ..." % (PKG_NAME, DST))
     shutil.copytree(SRC, DST)
