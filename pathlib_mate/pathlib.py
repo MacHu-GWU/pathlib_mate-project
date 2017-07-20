@@ -5,6 +5,8 @@
 This is a REVISED version of standard pathlib.
 download from https://pypi.python.org/pypi/pathlib2/
 
+:
+
 line 734::
 
     class PurePath(object):
@@ -63,7 +65,7 @@ else:
         _getfinalpathname = None
 
 __all__ = [
-    "PurePath", "PurePosixPath", "PureWindowsPath",
+    "PurePath", "PurePosixPath", "PureWindowsPath", "PathlibMatePath",
     "Path", "PosixPath", "WindowsPath",
 ]
 
@@ -1110,484 +1112,10 @@ class PureWindowsPath(PurePath):
 
 # Filesystem-accessing classes
 
-
-class Path(PurePath):
-    """Path represent a virtual/real path in your file system.
+class PathlibMatePath(object):
+    """Pathlib mate customized methods, properties.
     """
-    __slots__ = (
-        '_accessor',
-        '_closed',
-    )
 
-    def __new__(cls, *args, **kwargs):
-        if cls is Path:
-            cls = WindowsPath if os.name == 'nt' else PosixPath
-        self = cls._from_parts(args, init=False)
-        if not self._flavour.is_supported:
-            raise NotImplementedError("cannot instantiate %r on your system"
-                                      % (cls.__name__,))
-        self._init()
-        return self
-
-    def _init(self,
-              # Private non-constructor arguments
-              template=None,
-              ):
-        self._closed = False
-        if template is not None:
-            self._accessor = template._accessor
-        else:
-            self._accessor = _normal_accessor
-
-    def _make_child_relpath(self, part):
-        # This is an optimization used for dir walking.  `part` must be
-        # a single part relative to this path.
-        parts = self._parts + [part]
-        return self._from_parsed_parts(self._drv, self._root, parts)
-
-    def __enter__(self):
-        if self._closed:
-            self._raise_closed()
-        return self
-
-    def __exit__(self, t, v, tb):
-        self._closed = True
-
-    def _raise_closed(self):
-        raise ValueError("I/O operation on closed path")
-
-    def _opener(self, name, flags, mode=0o666):
-        # A stub for the opener argument to built-in open()
-        return self._accessor.open(self, flags, mode)
-
-    def _raw_open(self, flags, mode=0o777):
-        """
-        Open the file pointed by this path and return a file descriptor,
-        as os.open() does.
-        """
-        if self._closed:
-            self._raise_closed()
-        return self._accessor.open(self, flags, mode)
-
-    # Public API
-
-    @classmethod
-    def cwd(cls):
-        """Return a new path pointing to the current working directory
-        (as returned by os.getcwd()).
-        """
-        return cls(os.getcwd())
-
-    @classmethod
-    def home(cls):
-        """Return a new path pointing to the user's home directory (as
-        returned by os.path.expanduser('~')).
-        """
-        return cls(cls()._flavour.gethomedir(None))
-
-    def samefile(self, other_path):
-        """Return whether `other_file` is the same or not as this file.
-        (as returned by os.path.samefile(file, other_file)).
-        """
-        if hasattr(os.path, "samestat"):
-            st = self.stat()
-            try:
-                other_st = other_path.stat()
-            except AttributeError:
-                other_st = os.stat(other_path)
-            return os.path.samestat(st, other_st)
-        else:
-            filename1 = six.text_type(self)
-            filename2 = six.text_type(other_path)
-            st1 = _win32_get_unique_path_id(filename1)
-            st2 = _win32_get_unique_path_id(filename2)
-            return st1 == st2
-
-    def iterdir(self):
-        """Iterate over the files in this directory.  Does not yield any
-        result for the special paths '.' and '..'.
-        """
-        if self._closed:
-            self._raise_closed()
-        for name in self._accessor.listdir(self):
-            if name in ('.', '..'):
-                # Yielding a path object for these makes little sense
-                continue
-            yield self._make_child_relpath(name)
-            if self._closed:
-                self._raise_closed()
-
-    def glob(self, pattern):
-        """Iterate over this subtree and yield all existing files (of any
-        kind, including directories) matching the given pattern.
-        """
-        pattern = self._flavour.casefold(pattern)
-        drv, root, pattern_parts = self._flavour.parse_parts((pattern,))
-        if drv or root:
-            raise NotImplementedError("Non-relative patterns are unsupported")
-        selector = _make_selector(tuple(pattern_parts))
-        for p in selector.select_from(self):
-            yield p
-
-    def rglob(self, pattern):
-        """Recursively yield all existing files (of any kind, including
-        directories) matching the given pattern, anywhere in this subtree.
-        """
-        pattern = self._flavour.casefold(pattern)
-        drv, root, pattern_parts = self._flavour.parse_parts((pattern,))
-        if drv or root:
-            raise NotImplementedError("Non-relative patterns are unsupported")
-        selector = _make_selector(("**",) + tuple(pattern_parts))
-        for p in selector.select_from(self):
-            yield p
-
-    def absolute(self):
-        """Return an absolute version of this path.  This function works
-        even if the path doesn't point to anything.
-
-        No normalization is done, i.e. all '.' and '..' will be kept along.
-        Use resolve() to get the canonical path to a file.
-        """
-        # XXX untested yet!
-        if self._closed:
-            self._raise_closed()
-        if self.is_absolute():
-            return self
-        # FIXME this must defer to the specific flavour (and, under Windows,
-        # use nt._getfullpathname())
-        obj = self._from_parts([os.getcwd()] + self._parts, init=False)
-        obj._init(template=self)
-        return obj
-
-    def resolve(self):
-        """
-        Make the path absolute, resolving all symlinks on the way and also
-        normalizing it (for example turning slashes into backslashes under
-        Windows).
-        """
-        if self._closed:
-            self._raise_closed()
-        s = self._flavour.resolve(self)
-        if s is None:
-            # No symlink resolution => for consistency, raise an error if
-            # the path doesn't exist or is forbidden
-            self.stat()
-            s = str(self.absolute())
-        # Now we have no symlinks in the path, it's safe to normalize it.
-        normed = self._flavour.pathmod.normpath(s)
-        obj = self._from_parts((normed,), init=False)
-        obj._init(template=self)
-        return obj
-
-    def stat(self):
-        """
-        Return the result of the stat() system call on this path, like
-        os.stat() does.
-        """
-        return self._accessor.stat(self)
-
-    def owner(self):
-        """
-        Return the login name of the file owner.
-        """
-        import pwd
-        return pwd.getpwuid(self.stat().st_uid).pw_name
-
-    def group(self):
-        """
-        Return the group name of the file gid.
-        """
-        import grp
-        return grp.getgrgid(self.stat().st_gid).gr_name
-
-    def open(self, mode='r', buffering=-1, encoding=None,
-             errors=None, newline=None):
-        """
-        Open the file pointed by this path and return a file object, as
-        the built-in open() function does.
-        """
-        if self._closed:
-            self._raise_closed()
-        if sys.version_info >= (3, 3):
-            return io.open(
-                str(self), mode, buffering, encoding, errors, newline,
-                opener=self._opener)
-        else:
-            return io.open(str(self), mode, buffering,
-                           encoding, errors, newline)
-
-    def read_bytes(self):
-        """
-        Open the file in bytes mode, read it, and close the file.
-        """
-        with self.open(mode='rb') as f:
-            return f.read()
-
-    def read_text(self, encoding=None, errors=None):
-        """
-        Open the file in text mode, read it, and close the file.
-        """
-        with self.open(mode='r', encoding=encoding, errors=errors) as f:
-            return f.read()
-
-    def write_bytes(self, data):
-        """
-        Open the file in bytes mode, write to it, and close the file.
-        """
-        if not isinstance(data, six.binary_type):
-            raise TypeError(
-                'data must be %s, not %s' %
-                (six.binary_type.__class__.__name__, data.__class__.__name__))
-        with self.open(mode='wb') as f:
-            return f.write(data)
-
-    def write_text(self, data, encoding=None, errors=None):
-        """
-        Open the file in text mode, write to it, and close the file.
-        """
-        if not isinstance(data, six.text_type):
-            raise TypeError(
-                'data must be %s, not %s' %
-                (six.text_type.__class__.__name__, data.__class__.__name__))
-        with self.open(mode='w', encoding=encoding, errors=errors) as f:
-            return f.write(data)
-
-    def touch(self, mode=0o666, exist_ok=True):
-        """
-        Create this file with the given access mode, if it doesn't exist.
-        """
-        if self._closed:
-            self._raise_closed()
-        if exist_ok:
-            # First try to bump modification time
-            # Implementation note: GNU touch uses the UTIME_NOW option of
-            # the utimensat() / futimens() functions.
-            try:
-                self._accessor.utime(self, None)
-            except OSError:
-                # Avoid exception chaining
-                pass
-            else:
-                return
-        flags = os.O_CREAT | os.O_WRONLY
-        if not exist_ok:
-            flags |= os.O_EXCL
-        fd = self._raw_open(flags, mode)
-        os.close(fd)
-
-    def mkdir(self, mode=0o777, parents=False, exist_ok=False):
-
-        def helper(exc):
-            if not exist_ok or not self.is_dir():
-                raise exc
-
-        if self._closed:
-            self._raise_closed()
-        if not parents:
-            _try_except_fileexistserror(
-                lambda: self._accessor.mkdir(self, mode),
-                helper)
-        else:
-            try:
-                _try_except_fileexistserror(
-                    lambda: self._accessor.mkdir(self, mode),
-                    helper)
-            except OSError as e:
-                if e.errno != ENOENT:
-                    raise
-                self.parent.mkdir(parents=True)
-                self._accessor.mkdir(self, mode)
-
-    def chmod(self, mode):
-        """
-        Change the permissions of the path, like os.chmod().
-        """
-        if self._closed:
-            self._raise_closed()
-        self._accessor.chmod(self, mode)
-
-    def lchmod(self, mode):
-        """
-        Like chmod(), except if the path points to a symlink, the symlink's
-        permissions are changed, rather than its target's.
-        """
-        if self._closed:
-            self._raise_closed()
-        self._accessor.lchmod(self, mode)
-
-    def unlink(self):
-        """
-        Remove this file or link.
-        If the path is a directory, use rmdir() instead.
-        """
-        if self._closed:
-            self._raise_closed()
-        self._accessor.unlink(self)
-
-    def rmdir(self):
-        """
-        Remove this directory.  The directory must be empty.
-        """
-        if self._closed:
-            self._raise_closed()
-        self._accessor.rmdir(self)
-
-    def lstat(self):
-        """
-        Like stat(), except if the path points to a symlink, the symlink's
-        status information is returned, rather than its target's.
-        """
-        if self._closed:
-            self._raise_closed()
-        return self._accessor.lstat(self)
-
-    def rename(self, target):
-        """
-        Rename this path to the given path.
-        """
-        if self._closed:
-            self._raise_closed()
-        self._accessor.rename(self, target)
-
-    def replace(self, target):
-        """
-        Rename this path to the given path, clobbering the existing
-        destination if it exists.
-        """
-        if sys.version_info < (3, 3):
-            raise NotImplementedError("replace() is only available "
-                                      "with Python 3.3 and later")
-        if self._closed:
-            self._raise_closed()
-        self._accessor.replace(self, target)
-
-    def symlink_to(self, target, target_is_directory=False):
-        """
-        Make this path a symlink pointing to the given path.
-        Note the order of arguments (self, target) is the reverse of
-        os.symlink's.
-        """
-        if self._closed:
-            self._raise_closed()
-        self._accessor.symlink(target, self, target_is_directory)
-
-    # Convenience functions for querying the stat results
-
-    def exists(self):
-        """
-        Whether this path exists.
-        """
-        try:
-            self.stat()
-        except OSError as e:
-            if e.errno not in (ENOENT, ENOTDIR):
-                raise
-            return False
-        return True
-
-    def is_dir(self):
-        """
-        Whether this path is a directory.
-        """
-        try:
-            return S_ISDIR(self.stat().st_mode)
-        except OSError as e:
-            if e.errno not in (ENOENT, ENOTDIR):
-                raise
-            # Path doesn't exist or is a broken symlink
-            # (see https://bitbucket.org/pitrou/pathlib/issue/12/)
-            return False
-
-    def is_file(self):
-        """
-        Whether this path is a regular file (also True for symlinks pointing
-        to regular files).
-        """
-        try:
-            return S_ISREG(self.stat().st_mode)
-        except OSError as e:
-            if e.errno not in (ENOENT, ENOTDIR):
-                raise
-            # Path doesn't exist or is a broken symlink
-            # (see https://bitbucket.org/pitrou/pathlib/issue/12/)
-            return False
-
-    def is_symlink(self):
-        """
-        Whether this path is a symbolic link.
-        """
-        try:
-            return S_ISLNK(self.lstat().st_mode)
-        except OSError as e:
-            if e.errno not in (ENOENT, ENOTDIR):
-                raise
-            # Path doesn't exist
-            return False
-
-    def is_block_device(self):
-        """
-        Whether this path is a block device.
-        """
-        try:
-            return S_ISBLK(self.stat().st_mode)
-        except OSError as e:
-            if e.errno not in (ENOENT, ENOTDIR):
-                raise
-            # Path doesn't exist or is a broken symlink
-            # (see https://bitbucket.org/pitrou/pathlib/issue/12/)
-            return False
-
-    def is_char_device(self):
-        """
-        Whether this path is a character device.
-        """
-        try:
-            return S_ISCHR(self.stat().st_mode)
-        except OSError as e:
-            if e.errno not in (ENOENT, ENOTDIR):
-                raise
-            # Path doesn't exist or is a broken symlink
-            # (see https://bitbucket.org/pitrou/pathlib/issue/12/)
-            return False
-
-    def is_fifo(self):
-        """
-        Whether this path is a FIFO.
-        """
-        try:
-            return S_ISFIFO(self.stat().st_mode)
-        except OSError as e:
-            if e.errno not in (ENOENT, ENOTDIR):
-                raise
-            # Path doesn't exist or is a broken symlink
-            # (see https://bitbucket.org/pitrou/pathlib/issue/12/)
-            return False
-
-    def is_socket(self):
-        """
-        Whether this path is a socket.
-        """
-        try:
-            return S_ISSOCK(self.stat().st_mode)
-        except OSError as e:
-            if e.errno not in (ENOENT, ENOTDIR):
-                raise
-            # Path doesn't exist or is a broken symlink
-            # (see https://bitbucket.org/pitrou/pathlib/issue/12/)
-            return False
-
-    def expanduser(self):
-        """ Return a new path with expanded ~ and ~user constructs
-        (as returned by os.path.expanduser)
-        """
-        if (not (self._drv or self._root)
-                and self._parts and self._parts[0][:1] == '~'):
-            homedir = self._flavour.gethomedir(self._parts[0][1:])
-            return self._from_parts([homedir] + self._parts[1:])
-
-        return self
-
-    #--- pathlib_mate ---
     def assert_is_file_and_exists(self):
         """Assert it is a directory and exists in file system. 
         """
@@ -1904,7 +1432,10 @@ class Path(PurePath):
 
         return p
 
-    remove = unlink
+    def remove(self, *args, **kwargs):
+        """Remove it.
+        """
+        self.unlink(*args, **kwargs)
 
     #--- select ---
     def all_true(x): return True
@@ -2575,6 +2106,483 @@ class Path(PurePath):
 
             with open(p.abspath, "wb") as f:
                 f.write(formatted_code.encode("utf-8"))
+
+
+class Path(PurePath, PathlibMatePath):
+    """Path represent a virtual/real path in your file system.
+    """
+    __slots__ = (
+        '_accessor',
+        '_closed',
+    )
+
+    def __new__(cls, *args, **kwargs):
+        if cls is Path:
+            cls = WindowsPath if os.name == 'nt' else PosixPath
+        self = cls._from_parts(args, init=False)
+        if not self._flavour.is_supported:
+            raise NotImplementedError("cannot instantiate %r on your system"
+                                      % (cls.__name__,))
+        self._init()
+        return self
+
+    def _init(self,
+              # Private non-constructor arguments
+              template=None,
+              ):
+        self._closed = False
+        if template is not None:
+            self._accessor = template._accessor
+        else:
+            self._accessor = _normal_accessor
+
+    def _make_child_relpath(self, part):
+        # This is an optimization used for dir walking.  `part` must be
+        # a single part relative to this path.
+        parts = self._parts + [part]
+        return self._from_parsed_parts(self._drv, self._root, parts)
+
+    def __enter__(self):
+        if self._closed:
+            self._raise_closed()
+        return self
+
+    def __exit__(self, t, v, tb):
+        self._closed = True
+
+    def _raise_closed(self):
+        raise ValueError("I/O operation on closed path")
+
+    def _opener(self, name, flags, mode=0o666):
+        # A stub for the opener argument to built-in open()
+        return self._accessor.open(self, flags, mode)
+
+    def _raw_open(self, flags, mode=0o777):
+        """
+        Open the file pointed by this path and return a file descriptor,
+        as os.open() does.
+        """
+        if self._closed:
+            self._raise_closed()
+        return self._accessor.open(self, flags, mode)
+
+    # Public API
+
+    @classmethod
+    def cwd(cls):
+        """Return a new path pointing to the current working directory
+        (as returned by os.getcwd()).
+        """
+        return cls(os.getcwd())
+
+    @classmethod
+    def home(cls):
+        """Return a new path pointing to the user's home directory (as
+        returned by os.path.expanduser('~')).
+        """
+        return cls(cls()._flavour.gethomedir(None))
+
+    def samefile(self, other_path):
+        """Return whether `other_file` is the same or not as this file.
+        (as returned by os.path.samefile(file, other_file)).
+        """
+        if hasattr(os.path, "samestat"):
+            st = self.stat()
+            try:
+                other_st = other_path.stat()
+            except AttributeError:
+                other_st = os.stat(other_path)
+            return os.path.samestat(st, other_st)
+        else:
+            filename1 = six.text_type(self)
+            filename2 = six.text_type(other_path)
+            st1 = _win32_get_unique_path_id(filename1)
+            st2 = _win32_get_unique_path_id(filename2)
+            return st1 == st2
+
+    def iterdir(self):
+        """Iterate over the files in this directory.  Does not yield any
+        result for the special paths '.' and '..'.
+        """
+        if self._closed:
+            self._raise_closed()
+        for name in self._accessor.listdir(self):
+            if name in ('.', '..'):
+                # Yielding a path object for these makes little sense
+                continue
+            yield self._make_child_relpath(name)
+            if self._closed:
+                self._raise_closed()
+
+    def glob(self, pattern):
+        """Iterate over this subtree and yield all existing files (of any
+        kind, including directories) matching the given pattern.
+        """
+        pattern = self._flavour.casefold(pattern)
+        drv, root, pattern_parts = self._flavour.parse_parts((pattern,))
+        if drv or root:
+            raise NotImplementedError("Non-relative patterns are unsupported")
+        selector = _make_selector(tuple(pattern_parts))
+        for p in selector.select_from(self):
+            yield p
+
+    def rglob(self, pattern):
+        """Recursively yield all existing files (of any kind, including
+        directories) matching the given pattern, anywhere in this subtree.
+        """
+        pattern = self._flavour.casefold(pattern)
+        drv, root, pattern_parts = self._flavour.parse_parts((pattern,))
+        if drv or root:
+            raise NotImplementedError("Non-relative patterns are unsupported")
+        selector = _make_selector(("**",) + tuple(pattern_parts))
+        for p in selector.select_from(self):
+            yield p
+
+    def absolute(self):
+        """Return an absolute version of this path.  This function works
+        even if the path doesn't point to anything.
+
+        No normalization is done, i.e. all '.' and '..' will be kept along.
+        Use resolve() to get the canonical path to a file.
+        """
+        # XXX untested yet!
+        if self._closed:
+            self._raise_closed()
+        if self.is_absolute():
+            return self
+        # FIXME this must defer to the specific flavour (and, under Windows,
+        # use nt._getfullpathname())
+        obj = self._from_parts([os.getcwd()] + self._parts, init=False)
+        obj._init(template=self)
+        return obj
+
+    def resolve(self):
+        """
+        Make the path absolute, resolving all symlinks on the way and also
+        normalizing it (for example turning slashes into backslashes under
+        Windows).
+        """
+        if self._closed:
+            self._raise_closed()
+        s = self._flavour.resolve(self)
+        if s is None:
+            # No symlink resolution => for consistency, raise an error if
+            # the path doesn't exist or is forbidden
+            self.stat()
+            s = str(self.absolute())
+        # Now we have no symlinks in the path, it's safe to normalize it.
+        normed = self._flavour.pathmod.normpath(s)
+        obj = self._from_parts((normed,), init=False)
+        obj._init(template=self)
+        return obj
+
+    def stat(self):
+        """
+        Return the result of the stat() system call on this path, like
+        os.stat() does.
+        """
+        return self._accessor.stat(self)
+
+    def owner(self):
+        """
+        Return the login name of the file owner.
+        """
+        import pwd
+        return pwd.getpwuid(self.stat().st_uid).pw_name
+
+    def group(self):
+        """
+        Return the group name of the file gid.
+        """
+        import grp
+        return grp.getgrgid(self.stat().st_gid).gr_name
+
+    def open(self, mode='r', buffering=-1, encoding=None,
+             errors=None, newline=None):
+        """
+        Open the file pointed by this path and return a file object, as
+        the built-in open() function does.
+        """
+        if self._closed:
+            self._raise_closed()
+        if sys.version_info >= (3, 3):
+            return io.open(
+                str(self), mode, buffering, encoding, errors, newline,
+                opener=self._opener)
+        else:
+            return io.open(str(self), mode, buffering,
+                           encoding, errors, newline)
+
+    def read_bytes(self):
+        """
+        Open the file in bytes mode, read it, and close the file.
+        """
+        with self.open(mode='rb') as f:
+            return f.read()
+
+    def read_text(self, encoding=None, errors=None):
+        """
+        Open the file in text mode, read it, and close the file.
+        """
+        with self.open(mode='r', encoding=encoding, errors=errors) as f:
+            return f.read()
+
+    def write_bytes(self, data):
+        """
+        Open the file in bytes mode, write to it, and close the file.
+        """
+        if not isinstance(data, six.binary_type):
+            raise TypeError(
+                'data must be %s, not %s' %
+                (six.binary_type.__class__.__name__, data.__class__.__name__))
+        with self.open(mode='wb') as f:
+            return f.write(data)
+
+    def write_text(self, data, encoding=None, errors=None):
+        """
+        Open the file in text mode, write to it, and close the file.
+        """
+        if not isinstance(data, six.text_type):
+            raise TypeError(
+                'data must be %s, not %s' %
+                (six.text_type.__class__.__name__, data.__class__.__name__))
+        with self.open(mode='w', encoding=encoding, errors=errors) as f:
+            return f.write(data)
+
+    def touch(self, mode=0o666, exist_ok=True):
+        """
+        Create this file with the given access mode, if it doesn't exist.
+        """
+        if self._closed:
+            self._raise_closed()
+        if exist_ok:
+            # First try to bump modification time
+            # Implementation note: GNU touch uses the UTIME_NOW option of
+            # the utimensat() / futimens() functions.
+            try:
+                self._accessor.utime(self, None)
+            except OSError:
+                # Avoid exception chaining
+                pass
+            else:
+                return
+        flags = os.O_CREAT | os.O_WRONLY
+        if not exist_ok:
+            flags |= os.O_EXCL
+        fd = self._raw_open(flags, mode)
+        os.close(fd)
+
+    def mkdir(self, mode=0o777, parents=False, exist_ok=False):
+
+        def helper(exc):
+            if not exist_ok or not self.is_dir():
+                raise exc
+
+        if self._closed:
+            self._raise_closed()
+        if not parents:
+            _try_except_fileexistserror(
+                lambda: self._accessor.mkdir(self, mode),
+                helper)
+        else:
+            try:
+                _try_except_fileexistserror(
+                    lambda: self._accessor.mkdir(self, mode),
+                    helper)
+            except OSError as e:
+                if e.errno != ENOENT:
+                    raise
+                self.parent.mkdir(parents=True)
+                self._accessor.mkdir(self, mode)
+
+    def chmod(self, mode):
+        """
+        Change the permissions of the path, like os.chmod().
+        """
+        if self._closed:
+            self._raise_closed()
+        self._accessor.chmod(self, mode)
+
+    def lchmod(self, mode):
+        """
+        Like chmod(), except if the path points to a symlink, the symlink's
+        permissions are changed, rather than its target's.
+        """
+        if self._closed:
+            self._raise_closed()
+        self._accessor.lchmod(self, mode)
+
+    def unlink(self):
+        """
+        Remove this file or link.
+        If the path is a directory, use rmdir() instead.
+        """
+        if self._closed:
+            self._raise_closed()
+        self._accessor.unlink(self)
+
+    def rmdir(self):
+        """
+        Remove this directory.  The directory must be empty.
+        """
+        if self._closed:
+            self._raise_closed()
+        self._accessor.rmdir(self)
+
+    def lstat(self):
+        """
+        Like stat(), except if the path points to a symlink, the symlink's
+        status information is returned, rather than its target's.
+        """
+        if self._closed:
+            self._raise_closed()
+        return self._accessor.lstat(self)
+
+    def rename(self, target):
+        """
+        Rename this path to the given path.
+        """
+        if self._closed:
+            self._raise_closed()
+        self._accessor.rename(self, target)
+
+    def replace(self, target):
+        """
+        Rename this path to the given path, clobbering the existing
+        destination if it exists.
+        """
+        if sys.version_info < (3, 3):
+            raise NotImplementedError("replace() is only available "
+                                      "with Python 3.3 and later")
+        if self._closed:
+            self._raise_closed()
+        self._accessor.replace(self, target)
+
+    def symlink_to(self, target, target_is_directory=False):
+        """
+        Make this path a symlink pointing to the given path.
+        Note the order of arguments (self, target) is the reverse of
+        os.symlink's.
+        """
+        if self._closed:
+            self._raise_closed()
+        self._accessor.symlink(target, self, target_is_directory)
+
+    # Convenience functions for querying the stat results
+
+    def exists(self):
+        """
+        Whether this path exists.
+        """
+        try:
+            self.stat()
+        except OSError as e:
+            if e.errno not in (ENOENT, ENOTDIR):
+                raise
+            return False
+        return True
+
+    def is_dir(self):
+        """
+        Whether this path is a directory.
+        """
+        try:
+            return S_ISDIR(self.stat().st_mode)
+        except OSError as e:
+            if e.errno not in (ENOENT, ENOTDIR):
+                raise
+            # Path doesn't exist or is a broken symlink
+            # (see https://bitbucket.org/pitrou/pathlib/issue/12/)
+            return False
+
+    def is_file(self):
+        """
+        Whether this path is a regular file (also True for symlinks pointing
+        to regular files).
+        """
+        try:
+            return S_ISREG(self.stat().st_mode)
+        except OSError as e:
+            if e.errno not in (ENOENT, ENOTDIR):
+                raise
+            # Path doesn't exist or is a broken symlink
+            # (see https://bitbucket.org/pitrou/pathlib/issue/12/)
+            return False
+
+    def is_symlink(self):
+        """
+        Whether this path is a symbolic link.
+        """
+        try:
+            return S_ISLNK(self.lstat().st_mode)
+        except OSError as e:
+            if e.errno not in (ENOENT, ENOTDIR):
+                raise
+            # Path doesn't exist
+            return False
+
+    def is_block_device(self):
+        """
+        Whether this path is a block device.
+        """
+        try:
+            return S_ISBLK(self.stat().st_mode)
+        except OSError as e:
+            if e.errno not in (ENOENT, ENOTDIR):
+                raise
+            # Path doesn't exist or is a broken symlink
+            # (see https://bitbucket.org/pitrou/pathlib/issue/12/)
+            return False
+
+    def is_char_device(self):
+        """
+        Whether this path is a character device.
+        """
+        try:
+            return S_ISCHR(self.stat().st_mode)
+        except OSError as e:
+            if e.errno not in (ENOENT, ENOTDIR):
+                raise
+            # Path doesn't exist or is a broken symlink
+            # (see https://bitbucket.org/pitrou/pathlib/issue/12/)
+            return False
+
+    def is_fifo(self):
+        """
+        Whether this path is a FIFO.
+        """
+        try:
+            return S_ISFIFO(self.stat().st_mode)
+        except OSError as e:
+            if e.errno not in (ENOENT, ENOTDIR):
+                raise
+            # Path doesn't exist or is a broken symlink
+            # (see https://bitbucket.org/pitrou/pathlib/issue/12/)
+            return False
+
+    def is_socket(self):
+        """
+        Whether this path is a socket.
+        """
+        try:
+            return S_ISSOCK(self.stat().st_mode)
+        except OSError as e:
+            if e.errno not in (ENOENT, ENOTDIR):
+                raise
+            # Path doesn't exist or is a broken symlink
+            # (see https://bitbucket.org/pitrou/pathlib/issue/12/)
+            return False
+
+    def expanduser(self):
+        """ Return a new path with expanded ~ and ~user constructs
+        (as returned by os.path.expanduser)
+        """
+        if (not (self._drv or self._root)
+                and self._parts and self._parts[0][:1] == '~'):
+            homedir = self._flavour.gethomedir(self._parts[0][1:])
+            return self._from_parts([homedir] + self._parts[1:])
+
+        return self
 
 
 class PosixPath(Path, PurePosixPath):
