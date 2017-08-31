@@ -197,7 +197,7 @@ class PathlibMatePath(object):
         """
         try:
             return self._stat.st_size
-        except: # pragma: no cover
+        except:  # pragma: no cover
             self._stat = self.stat()
             return self.size
 
@@ -225,7 +225,7 @@ class PathlibMatePath(object):
         """
         try:
             return self._stat.st_mtime
-        except: # pragma: no cover
+        except:  # pragma: no cover
             self._stat = self.stat()
             return self.mtime
 
@@ -235,7 +235,7 @@ class PathlibMatePath(object):
         """
         try:
             return self._stat.st_atime
-        except: # pragma: no cover
+        except:  # pragma: no cover
             self._stat = self.stat()
             return self.atime
 
@@ -245,7 +245,7 @@ class PathlibMatePath(object):
         """
         try:
             return self._stat.st_ctime
-        except: # pragma: no cover
+        except:  # pragma: no cover
             self._stat = self.stat()
             return self.ctime
 
@@ -656,7 +656,7 @@ class PathlibMatePath(object):
         ".3gp", ".webm", ".ogg",
     ]
 
-    def select_audio(self, recursive=True): # pragma: no cover
+    def select_audio(self, recursive=True):  # pragma: no cover
         """Select audio file.
         """
         return self.select_by_ext(self._audio_ext, recursive)
@@ -667,18 +667,18 @@ class PathlibMatePath(object):
         ".mpg", ".mpeg", ".m4v", ".iso",
     ]
 
-    def select_video(self, recursive=True): # pragma: no cover
+    def select_video(self, recursive=True):  # pragma: no cover
         """Select video file.
         """
         return self.select_by_ext(self._video_ext, recursive)
 
-    def select_word(self, recursive=True): # pragma: no cover
+    def select_word(self, recursive=True):  # pragma: no cover
         """Select Microsoft Word file.
         """
         ext = [".doc", ".docx", ".docm", ".dotx", ".dotm", ".docb"]
         return self.select_by_ext(ext, recursive)
 
-    def select_excel(self, recursive=True): # pragma: no cover
+    def select_excel(self, recursive=True):  # pragma: no cover
         """Select Microsoft Excel file.
         """
         ext = [".xls", ".xlsx", ".xlsm", ".xltx", ".xltm"]
@@ -686,7 +686,7 @@ class PathlibMatePath(object):
 
     _archive_ext = [".zip", ".rar", ".gz", ".tar.gz", ".tgz", ".7z"]
 
-    def select_archive(self, recursive=True): # pragma: no cover
+    def select_archive(self, recursive=True):  # pragma: no cover
         """Select compressed archive file.
         """
         return self.select_by_ext(self._archive_ext, recursive)
@@ -958,7 +958,7 @@ class PathlibMatePath(object):
         """
         from zipfile import ZipFile
 
-        def preprocess_arg(arg): # pragma: no cover
+        def preprocess_arg(arg):  # pragma: no cover
             if arg is None:
                 return []
 

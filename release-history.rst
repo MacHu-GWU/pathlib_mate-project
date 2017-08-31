@@ -1,7 +1,7 @@
 Release and Version History
 ===========================
 
-0.0.2 (TODO)
+x.x.x (TODO)
 ~~~~~~~~~~~~
 **Features and Improvements**
 
@@ -12,7 +12,7 @@ Release and Version History
 **Miscellaneous**
 
 
-0.0.10 (2017-07-20) MileStone
+0.0.11 (2017-08-31) MileStone
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 A stable, rich features, fully tested version.
 

@@ -326,6 +326,7 @@ def test_is_empty():
     with raises(EnvironmentError):
         Path("FileNotExist").is_empty()
 
+
 def test_assert_is_file_and_exists():
     Path(__file__).assert_is_file_and_exists()
 
@@ -380,8 +381,13 @@ def test_mirror_to():
 def test_backup():
     """Not need in travis.
     """
+    import random
     p = Path(__file__).change(new_basename="app")
-    p.backup(ignore_size_larger_than=1000, case_sensitive=False)
+
+    dst = Path(__file__).\
+        change(new_basename="app-%s.zip" % random.randint(1, 9999))
+    p.backup(dst.abspath, ignore_size_larger_than=1000, case_sensitive=False)
+    assert len(list(Path(__file__).parent.select_by_ext(".zip"))) == 1
 
 
 def test_autopep8():
