@@ -1,10 +1,20 @@
 .. image:: https://travis-ci.org/MacHu-GWU/pathlib_mate-project.svg?branch=master
+    :target: https://travis-ci.org/MacHu-GWU/pathlib_mate-project?branch=master
+
+.. image:: https://coveralls.io/repos/github/MacHu-GWU/pathlib_mate-project/badge.svg?branch=master
+    :target: https://coveralls.io/github/MacHu-GWU/pathlib_mate-project?branch=master
 
 .. image:: https://img.shields.io/pypi/v/pathlib_mate.svg
+    :target: https://pypi.python.org/pypi/pathlib_mate
 
 .. image:: https://img.shields.io/pypi/l/pathlib_mate.svg
+    :target: https://pypi.python.org/pypi/pathlib_mate
 
 .. image:: https://img.shields.io/pypi/pyversions/pathlib_mate.svg
+    :target: https://pypi.python.org/pypi/pathlib_mate
+
+.. image:: https://img.shields.io/badge/Star_Me_on_GitHub!--None.svg?style=social
+    :target: https://github.com/MacHu-GWU/pathlib_mate-project
 
 
 Welcome to pathlib_mate Documentation
@@ -28,7 +38,7 @@ Features:
 - `PyPI download <https://pypi.python.org/pypi/pathlib_mate>`_
 - `Install <install_>`_
 - `Issue submit and feature request <https://github.com/MacHu-GWU/pathlib_mate-project/issues>`_
-- `API reference and source code <http://www.wbh-doc.com.s3.amazonaws.com/pathlib_mate/pathlib_mate/pathlib.html#pathlib_mate.pathlib.PathlibMatePath>`_
+- `API reference and source code <http://www.wbh-doc.com.s3.amazonaws.com/pathlib_mate/pathlib_mate/mate.html#module-pathlib_mate.mate.PathlibMatePath>`_
 
 
 .. _install:

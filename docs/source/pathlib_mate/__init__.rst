@@ -10,5 +10,6 @@ sub packages and modules
 .. toctree::
    :maxdepth: 1
 
+    mate <mate>
     pathlib <pathlib>
     

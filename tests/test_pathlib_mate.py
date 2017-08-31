@@ -3,13 +3,24 @@
 
 import os
 import shutil
-import pytest
+import platform
 from datetime import datetime
-from pathlib_mate import Path
-from pathlib_mate.pathlib import _preprocess
+
+import pytest
+from pytest import raises
+
+from pathlib_mate.pathlib import Path
+from pathlib_mate.mate import _preprocess, repr_data_size, md5file
 
 
 def setup_module(module):
+    """
+    Create temp file and dir for test.
+
+    - create a new folder ``/wow``
+    - create two file `/`wow/file_to_move.txt``, ``wow/file_to_copy.txt``
+    """
+
     p = Path(__file__).change(new_basename="app")
     try:
         shutil.copytree(p.abspath, p.change(new_basename="wow").abspath)
@@ -26,7 +37,10 @@ def setup_module(module):
 
 
 def teardown_module(module):
-    reserved = ["app", "test_all.py", "test_pathlib_mate.py"]
+    """
+    Remove temp file and dir for test.
+    """
+    reserved = ["app", "all.py", "test_pathlib_mate.py"]
     for p in Path(__file__).parent.iterdir():
         if p.basename not in reserved:
             if p.is_dir():
@@ -41,6 +55,22 @@ def test_preprocess():
 
     assert _preprocess(["a", ]) == ["a", ]
     assert _preprocess([Path(__file__), ]) == [str(Path(__file__)), ]
+
+
+def test_repr_data_size():
+    assert repr_data_size(1) == "1 B"
+    assert repr_data_size(1024) == "1.00 KB"
+    assert repr_data_size(1024 ** 2) == "1.00 MB"
+    assert repr_data_size(1024 ** 3) == "1.00 GB"
+    assert repr_data_size(1024 ** 4) == "1.00 TB"
+    assert repr_data_size(1024 ** 5) == "1.00 PB"
+    assert repr_data_size(1024 ** 6) == "1.00 EB"
+    assert repr_data_size(1024 ** 7) == "1.00 ZB"
+    assert repr_data_size(1024 ** 8) == "1.00 YB"
+
+
+def test_md5file():
+    assert md5file(__file__, 10) == "2030c5e97b2761d126f41dbd610d80a7"
 
 
 def is_increasing(array):
@@ -84,6 +114,9 @@ def test_attribute():
     assert p.access_datetime >= datetime(2016, 1, 1)
     assert p.create_datetime >= datetime(2016, 1, 1)
     assert "KB" in p.size_in_text
+    assert p.get_partial_md5(nbytes=10) == "2030c5e97b2761d126f41dbd610d80a7"
+    with raises(ValueError):
+        p.get_partial_md5(0)
 
 
 def test_drop_parts():
@@ -130,11 +163,20 @@ def test_change():
     assert p1.dirpath.endswith("folder")
 
     # because __file__ is OS dependent, so don't test this.
-#     p1 = p.change(new_dirpath=r"C:\User")
-#     assert p1.ext == p.ext
-#     assert p1.fname == p.fname
-#     assert p1.dirname == "User"
-#     assert p1.dirpath == r"C:\User"
+    system_name = platform.system()
+    if system_name == "Windows":
+        p1 = p.change(new_dirpath=r"C:\User")
+        assert p1.ext == p.ext
+        assert p1.fname == p.fname
+        assert p1.dirname == "User"
+        assert p1.dirpath == r"C:\User"
+
+    elif system_name in ["Darwin", "Linux"]:
+        p1 = p.change(new_dirpath="/Users")
+        assert p1.ext == p.ext
+        assert p1.fname == p.fname
+        assert p1.dirname == "Users"
+        assert p1.dirpath == "/Users"
 
 
 def test_moveto():
@@ -190,10 +232,6 @@ def test_copyto():
     assert n_files == p_dir_new.n_file
 
 
-# Default test dir, the project dir: 'pathlib_mate-project'
-path = Path(".").absolute().parent
-
-
 def test_select():
     def filters(p):
         if p.fname.startswith("f"):
@@ -201,41 +239,79 @@ def test_select():
         else:
             return False
 
+    path = Path(__file__).absolute().parent.parent  # pathlibm_mate-project
     for p in path.select(filters):
         assert p.fname.startswith("f")
 
 
 def test_select_file():
+    path = Path(__file__).absolute().parent.parent  # pathlibm_mate-project
     for p in path.select_file():
         assert p.is_file()
 
 
 def test_select_dir():
+    path = Path(__file__).absolute().parent.parent  # pathlibm_mate-project
     for p in path.select_dir():
         assert p.is_dir()
 
 
 def test_select_by_ext():
+    path = Path(__file__).absolute().parent.parent  # pathlibm_mate-project
     for p in path.select_by_ext(".Bat"):
         assert p.ext.lower() == ".bat"
 
 
 def test_select_by_pattern_in_fname():
-    for p in path.select_by_pattern_in_fname("test"):
+    path = Path(__file__).absolute().parent.parent  # pathlibm_mate-project
+
+    for p in path.select_by_pattern_in_fname("test", case_sensitive=True):
+        assert "test" in p.fname
+
+    for p in path.select_by_pattern_in_fname("TEST", case_sensitive=False):
         assert "test" in p.fname
 
 
+def test_select_by_pattern_in_abspath():
+    path = Path(__file__).absolute().parent.parent  # pathlibm_mate-project
+
+    for p in path.select_by_pattern_in_abspath("test", case_sensitive=True):
+        assert "test" in p.abspath
+
+    for p in path.select_by_pattern_in_abspath("TEST", case_sensitive=False):
+        assert "test" in p.abspath
+
+
+def test_select_by_time():
+    path = Path(__file__).absolute().parent.parent  # pathlibm_mate-project
+
+    for p in path.select_by_atime(min_time=0):
+        p.atime >= 0
+
+    for p in path.select_by_ctime(min_time=0):
+        p.ctime >= 0
+
+    for p in path.select_by_mtime(min_time=0):
+        p.mtime >= 0
+
+
 def test_select_by_size():
+    path = Path(__file__).absolute().parent.parent  # pathlibm_mate-project
+
     for p in path.select_by_size(max_size=1000):
         assert p.size <= 1000
 
 
 def test_select_image():
+    path = Path(__file__).absolute().parent.parent  # pathlibm_mate-project
+
     for p in path.select_image():
-        assert p.ext in [".jpg", ".png", ".gif"]
+        assert p.ext in [".jpg", ".png", ".gif", ".svg"]
 
 
 def test_sort_by():
+    path = Path(__file__).absolute().parent.parent  # pathlibm_mate-project
+
     p_list = Path.sort_by_size(path.select_file())
     assert is_increasing([p.size for p in p_list])
 
@@ -245,25 +321,38 @@ def test_sort_by():
 
 def test_is_empty():
     assert Path(__file__).is_empty() is False
-    assert Path(__file__).parent.is_empty() is False
+    assert Path(__file__).parent.is_empty(strict=True) is False
+    assert Path(__file__).parent.is_empty(strict=False) is False
+    with raises(EnvironmentError):
+        Path("FileNotExist").is_empty()
+
+def test_assert_is_file_and_exists():
+    Path(__file__).assert_is_file_and_exists()
+
+
+def test_assert_is_dir_and_exists():
+    Path(__file__).parent.assert_is_dir_and_exists()
 
 
 def test_print_big_dir():
     """Not need in travis.
     """
-#     path.print_big_dir()
+    path = Path(__file__).absolute().parent.parent  # pathlibm_mate-project
+    path.print_big_dir()
 
 
 def test_print_big_file():
     """Not need in travis.
     """
-#     path.print_big_file()
+    path = Path(__file__).absolute().parent.parent  # pathlibm_mate-project
+    path.print_big_file()
 
 
 def test_print_big_dir_and_big_file():
     """Not need in travis.
     """
-#     path.print_big_dir_and_big_file()
+    path = Path(__file__).absolute().parent.parent  # pathlibm_mate-project
+    path.print_big_dir_and_big_file()
 
 
 def test_file_stat():
@@ -283,31 +372,34 @@ def test_file_stat():
 def test_mirror_to():
     """Not need in travis.
     """
-    path = Path("app")
-#     path.mirror_to("mirror")
+    p = Path(__file__).change(new_basename="app")
+    dst = Path(__file__).change(new_basename="mirror")
+    p.mirror_to(dst.abspath)
 
 
 def test_backup():
     """Not need in travis.
     """
-    p = Path(__file__).parent
-#     p.backup(ignore_size_larger_than=1000, case_sensitive=False)
+    p = Path(__file__).change(new_basename="app")
+    p.backup(ignore_size_larger_than=1000, case_sensitive=False)
 
 
 def test_autopep8():
     """Not need in travis.
     """
     p = Path(__file__).change(new_basename="app")
-#     p.autopep8()
+    p.autopep8()
 
 
 def test_trail_space():
     """Not need in travis.
     """
     p = Path(__file__).change(new_basename="app")
-#     p.trail_space()
+    p.trail_space()
 
 
 if __name__ == "__main__":
     import os
-    pytest.main(["--tb=native", "-s", os.path.basename(__file__)])
+
+    basename = os.path.basename(__file__)
+    pytest.main([basename, "-s", "--tb=native"])
