@@ -6,10 +6,7 @@ import shutil
 import hashlib
 from datetime import datetime
 
-try:
-    from . import six
-except:
-    from pathlib_mate import six
+from .pkg import six, autopep8
 
 
 def _preprocess(path_or_path_list):
@@ -1113,8 +1110,6 @@ class PathlibMatePath(object):
 
         将目录下的所有Python文件用pep8风格格式化。增加其可读性和规范性。
         """
-        import autopep8
-
         self.assert_is_dir_and_exists()
 
         for p in self.select_by_ext(".py"):

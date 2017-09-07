@@ -1,8 +1,8 @@
 .. image:: https://travis-ci.org/MacHu-GWU/pathlib_mate-project.svg?branch=master
     :target: https://travis-ci.org/MacHu-GWU/pathlib_mate-project?branch=master
 
-.. image:: https://coveralls.io/repos/github/MacHu-GWU/pathlib_mate-project/badge.svg?branch=master
-    :target: https://coveralls.io/github/MacHu-GWU/pathlib_mate-project?branch=master
+.. image:: https://codecov.io/gh/MacHu-GWU/pathlib_mate-project/branch/master/graph/badge.svg
+  :target: https://codecov.io/gh/MacHu-GWU/pathlib_mate-project
 
 .. image:: https://img.shields.io/pypi/v/pathlib_mate.svg
     :target: https://pypi.python.org/pypi/pathlib_mate

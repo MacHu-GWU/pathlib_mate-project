@@ -35,18 +35,11 @@ from stat import (
     S_ISDIR, S_ISLNK, S_ISREG, S_ISSOCK, S_ISBLK, S_ISCHR, S_ISFIFO)
 try:
     from urllib import quote as urlquote_from_bytes
-except ImportError:
+except ImportError: # pragma: no cover
     from urllib.parse import quote_from_bytes as urlquote_from_bytes
 
-try:
-    from . import six
-except:
-    from pathlib_mate import six
-
-try:
-    from .mate import PathlibMatePath
-except:
-    from pathlib_mate.mate import PathlibMatePath
+from .pkg import six
+from .mate import PathlibMatePath
 
 try:
     intern = intern

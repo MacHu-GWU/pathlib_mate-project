@@ -1,7 +1,6 @@
 [run]
 omit =
     pathlib_mate/pkg/*
-    pathlib_mate/six.py
     pathlib_mate/pathlib.py
     pathlib_mate/zzz_ezinstall.py
 
