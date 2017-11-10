@@ -35,7 +35,7 @@ from stat import (
     S_ISDIR, S_ISLNK, S_ISREG, S_ISSOCK, S_ISBLK, S_ISCHR, S_ISFIFO)
 try:
     from urllib import quote as urlquote_from_bytes
-except ImportError: # pragma: no cover
+except ImportError:  # pragma: no cover
     from urllib.parse import quote_from_bytes as urlquote_from_bytes
 
 from .pkg import six

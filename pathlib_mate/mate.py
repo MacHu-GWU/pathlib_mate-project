@@ -4,6 +4,7 @@
 import os
 import shutil
 import hashlib
+import binascii
 from datetime import datetime
 
 from .pkg import six, autopep8
@@ -106,77 +107,150 @@ def md5file(abspath, nbytes=0):
     return m.hexdigest()
 
 
+def encode_hexstr(text):
+    """
+    Convert any utf-8 string to hex string.
+
+    **中文文档**
+
+    将任意utf-8字符串编码为16进制字符串。
+    """
+    return binascii.b2a_hex(text.encode("utf-8")).decode("utf-8")
+
+
+def decode_hexstr(text):
+    """
+    Reverse operation of :func:`encode_hexstr`.
+
+    **中文文档**
+
+    将16进制字符串解码为原字符串。
+    """
+    return binascii.a2b_hex(text.encode("utf-8")).decode("utf-8")
+
+
 class PathlibMatePath(object):
-    """Pathlib mate customized methods, properties.
+    """
+    Pathlib mate customized methods, properties.
     """
 
     def assert_is_file_and_exists(self):
-        """Assert it is a directory and exists in file system.
+        """
+        Assert it is a directory and exists in file system.
         """
         if not self.is_file():
-            raise EnvironmentError("'%s' is not a file!" % self)
-        if not self.exists():
-            raise EnvironmentError("'%s' not exists!" % self)
+            msg = "'%s' is not a file or doesn't exists!" % self
+            raise EnvironmentError(msg)
 
     def assert_is_dir_and_exists(self):
-        """Assert it is a directory and exists in file system.
+        """
+        Assert it is a directory and exists in file system.
         """
         if not self.is_dir():
-            raise EnvironmentError("'%s' is not a directory!" % self)
+            msg = "'%s' is not a file or doesn't exists!" % self
+            raise EnvironmentError(msg)
+
+    def assert_exists(self):
+        """
+        Assert it exists.
+        """
         if not self.exists():
-            raise EnvironmentError("'%s' not exists!" % self)
+            msg = "'%s' doesn't exists!" % self
+            raise EnvironmentError(msg)
 
     # --- property methods that returns a value ---
     @property
     def abspath(self):
-        r"""Absolute path.
+        r"""
+        Absolute path.
 
         Example: ``C:\User\admin\readme.txt``
         """
         return self.absolute().__str__()
 
     @property
+    def abspath_hexstr(self):
+        """
+        Return absolute path in hex string.
+        """
+        return encode_hexstr(self.abspath)
+
+    @property
     def dirpath(self):
-        r"""Parent dir full absolute path.
+        r"""
+        Parent dir full absolute path.
 
         Example: ``C:\User\admin``
         """
         return self.parent.abspath
 
     @property
+    def dirpath_hexstr(self):
+        """
+        Return dir full absolute path in hex string.
+        """
+        return encode_hexstr(self.dirpath)
+
+    @property
     def dirname(self):
-        """Parent dir name.
+        """
+        Parent dir name.
 
         Example: ``admin``
         """
         return self.parent.name
 
     @property
+    def dirname_hexstr(self):
+        """
+        Parent dir name in hex string.
+        """
+        return encode_hexstr(self.dirname)
+
+    @property
     def basename(self):
-        """File name with extension, path is not included.
+        """
+        File name with extension, path is not included.
 
         Example: ``readme.txt``
         """
         return self.name
 
     @property
+    def basename_hexstr(self):
+        """
+        File name with extension in hex string.
+        """
+        return encode_hexstr(self.basename)
+
+    @property
     def fname(self):
-        """File name without extension.
+        """
+        File name without extension.
 
         Example: ``readme``
         """
         return self.stem
 
     @property
+    def fname_hexstr(self):
+        """
+        File name in hex string.
+        """
+        return encode_hexstr(self.fname)
+
+    @property
     def ext(self):
-        """File extension. If it's a dir, then return empty str.
+        """
+        File extension. If it's a dir, then return empty str.
 
         Example: ``.txt``
         """
         return self.suffix
 
     def get_partial_md5(self, nbytes):
-        """Return md5 check sum of first n bytes of this file.
+        """
+        Return md5 check sum of first n bytes of this file.
         """
         if nbytes in [0, None]:
             raise ValueError("'nbytes' has to be positive integer.")
@@ -184,13 +258,15 @@ class PathlibMatePath(object):
 
     @property
     def md5(self):
-        """Return md5 check sum of this file.
+        """
+        Return md5 check sum of this file.
         """
         return md5file(self.abspath)
 
     @property
     def size(self):
-        """File size in bytes.
+        """
+        File size in bytes.
         """
         try:
             return self._stat.st_size
@@ -200,7 +276,8 @@ class PathlibMatePath(object):
 
     @property
     def dirsize(self):
-        """Return total file size (include sub folder).
+        """
+        Return total file size (include sub folder).
         """
         total = 0
         for p in self.select_file(recursive=True):
@@ -212,13 +289,15 @@ class PathlibMatePath(object):
 
     @property
     def size_in_text(self):
-        """File size as human readable string.
+        """
+        File size as human readable string.
         """
         return repr_data_size(self.size, precision=2)
 
     @property
     def mtime(self):
-        """Get most recent modify time in timestamp.
+        """
+        Get most recent modify time in timestamp.
         """
         try:
             return self._stat.st_mtime
@@ -228,7 +307,8 @@ class PathlibMatePath(object):
 
     @property
     def atime(self):
-        """Get most recent access time in timestamp.
+        """
+        Get most recent access time in timestamp.
         """
         try:
             return self._stat.st_atime
@@ -238,7 +318,8 @@ class PathlibMatePath(object):
 
     @property
     def ctime(self):
-        """Get most recent create time in timestamp.
+        """
+        Get most recent create time in timestamp.
         """
         try:
             return self._stat.st_ctime
@@ -248,28 +329,34 @@ class PathlibMatePath(object):
 
     @property
     def modify_datetime(self):
-        """Get most recent modify time in datetime.
+        """
+        Get most recent modify time in datetime.
         """
         return datetime.fromtimestamp(self.mtime)
 
     @property
     def access_datetime(self):
-        """Get most recent access time in datetime.
+        """
+        Get most recent access time in datetime.
         """
         return datetime.fromtimestamp(self.atime)
 
     @property
     def create_datetime(self):
-        """Get most recent create time in datetime.
+        """
+        Get most recent create time in datetime.
         """
         return datetime.fromtimestamp(self.ctime)
 
     # --- methods return another Path ---
     def drop_parts(self, n=1):
         """
+        Drop parts from the ends.
 
         :param n: integer, number of parts you wants to drop from ends.
           n has to greater equal than 0.
+
+        :returns: a new Path object.
 
         Example::
 
@@ -282,7 +369,10 @@ class PathlibMatePath(object):
         return self.__class__(*self.parts[:-n])
 
     def append_parts(self, *parts):
-        """Append some parts to the end of this path.
+        """
+        Append some parts to the end of this path.
+
+        :returns: a new Path object.
 
         Example::
 
@@ -325,14 +415,21 @@ class PathlibMatePath(object):
                 new_ext = self.ext
             new_basename = new_fname + new_ext
         else:
-            if new_fname is None and new_ext is None:
-                if new_basename is None:
-                    new_basename = self.basename
-            else:
+            if new_fname is not None or new_ext is not None:
                 raise ValueError("Cannot having both new_basename, "
                                  "new_fname, new_ext!")
 
         return self.__class__(new_dirpath, new_basename)
+
+    def is_not_exist_or_allow_overwrite(self, overwrite=False):
+        """
+        Test whether a file target is not exists or it exists but allow
+        overwrite.
+        """
+        if self.exists() and overwrite is False:
+            return False
+        else:
+            return True
 
     def moveto(self,
                new_abspath=None,
@@ -342,7 +439,8 @@ class PathlibMatePath(object):
                new_ext=None,
                overwrite=False,
                makedirs=False):
-        """An advanced ``Path.rename`` method provide ability to rename by
+        """
+        An advanced ``Path.rename`` method provide ability to rename by
         each components of a path. A new ``Path`` instance will returns.
 
         **中文文档**
@@ -350,6 +448,8 @@ class PathlibMatePath(object):
         高级重命名函数, 允许用于根据路径的各个组成部分进行重命名。但和os.rename
         方法一样, 需要保证母文件夹存在。
         """
+        self.assert_exists()
+
         p = self.change(
             new_abspath=new_abspath,
             new_dirpath=new_dirpath,
@@ -359,27 +459,14 @@ class PathlibMatePath(object):
             new_ext=new_ext,
         )
 
-        rename_flag = False
-
-        # 如果新路径存在
-        if p.exists():
-            # 如果允许覆盖
-            if overwrite:
-                # 如果两个路径不同, 才进行move
-                if not self.abspath == p.abspath:
-                    rename_flag = True
-            # 如果不允许覆盖
-            else:
-                raise EnvironmentError("'%s' exists!" % p.abspath)
-        else:
-            rename_flag = True
-
-        if rename_flag:
-            if makedirs:
-                parent = p.parent
-                if not parent.exists():
-                    os.makedirs(parent.abspath)
-            self.rename(p)
+        if p.is_not_exist_or_allow_overwrite(overwrite=overwrite):
+            # 如果两个路径不同, 才进行move
+            if self.abspath != p.abspath:
+                if makedirs:
+                    parent = p.parent
+                    if not parent.exists():
+                        os.makedirs(parent.abspath)
+                self.rename(p)
         return p
 
     def copyto(self,
@@ -390,8 +477,11 @@ class PathlibMatePath(object):
                new_ext=None,
                overwrite=False,
                makedirs=False):
-        """Copy this file to other place.
         """
+        Copy this file to other place.
+        """
+        self.assert_exists()
+
         p = self.change(
             new_abspath=new_abspath,
             new_dirpath=new_dirpath,
@@ -400,29 +490,15 @@ class PathlibMatePath(object):
             new_fname=new_fname,
             new_ext=new_ext,
         )
-        # 如果源文件不存在
-        if not self.exists():
-            raise EnvironmentError("'%s' not exists!" % self.abspath)
 
-        copy_flag = False
-
-        if p.exists():
-            # 如果允许覆盖
-            if overwrite:
-                # 如果两个路径不同, 才进行copy
-                if not self.abspath == p.abspath:
-                    copy_flag = True
-            else:
-                raise EnvironmentError("'%s' exists!" % p.abspath)
-        else:
-            copy_flag = True
-
-        if copy_flag:
-            if makedirs:
-                parent = p.parent
-                if not parent.exists():
-                    os.makedirs(parent.abspath)
-            shutil.copy(self.abspath, p.abspath)
+        if p.is_not_exist_or_allow_overwrite(overwrite=overwrite):
+            # 如果两个路径不同, 才进行copy
+            if self.abspath != p.abspath:
+                if makedirs:
+                    parent = p.parent
+                    if not parent.exists():
+                        os.makedirs(parent.abspath)
+                shutil.copy(self.abspath, p.abspath)
 
         return p
 
@@ -537,7 +613,9 @@ class PathlibMatePath(object):
 
         return self.select_file(filters, recursive)
 
-    def select_by_pattern_in_fname(self, pattern, recursive=True,
+    def select_by_pattern_in_fname(self,
+                                   pattern,
+                                   recursive=True,
                                    case_sensitive=False):
         """Select file path by text pattern in file name.
 
@@ -547,32 +625,35 @@ class PathlibMatePath(object):
         选择文件名中包含指定子字符串的文件。
         """
         if case_sensitive:
+            def filters(p):
+                return pattern in p.fname
+        else:
             pattern = pattern.lower()
 
             def filters(p):
                 return pattern in p.fname.lower()
-        else:
-            def filters(p):
-                return pattern in p.fname
 
         return self.select_file(filters, recursive)
 
-    def select_by_pattern_in_abspath(self, pattern, recursive=True,
+    def select_by_pattern_in_abspath(self,
+                                     pattern,
+                                     recursive=True,
                                      case_sensitive=False):
-        """Select file path by text pattern in absolute path.
+        """
+        Select file path by text pattern in absolute path.
 
         **中文文档**
 
         选择绝对路径中包含指定子字符串的文件。
         """
         if case_sensitive:
+            def filters(p):
+                return pattern in p.abspath
+        else:
             pattern = pattern.lower()
 
             def filters(p):
                 return pattern in p.abspath.lower()
-        else:
-            def filters(p):
-                return pattern in p.abspath
 
         return self.select_file(filters, recursive)
 
@@ -911,11 +992,7 @@ class PathlibMatePath(object):
 
         src = self.abspath
         dst = os.path.abspath(dst)
-        if not self.exists():
-            raise Exception("source is not exists!")
-        if not self.is_dir():
-            raise Exception("source is not a dir!")
-        if os.path.exists(dst):
+        if os.path.exists(dst):  # pragma: no cover
             raise Exception("distination already exist!")
 
         folder_to_create = list()
@@ -925,7 +1002,7 @@ class PathlibMatePath(object):
             current_folder = current_folder.replace(src, dst)
             try:
                 os.mkdir(current_folder)
-            except:
+            except:  # pragma: no cover
                 pass
             for basename in file_list:
                 abspath = os.path.join(current_folder, basename)
@@ -1061,8 +1138,11 @@ class PathlibMatePath(object):
 
         print(tab * 2 + "Complete!")
 
-    def execute_pyfile(self, py_exe=None):
-        """Execute every ``.py`` file as main script.
+    def execute_pyfile(self, py_exe=None):  # pragma: no cover
+        """
+        Execute every ``.py`` file as main script.
+
+        :param py_exe: str, python command or python executable path.
 
         **中文文档**
 
@@ -1082,7 +1162,8 @@ class PathlibMatePath(object):
             subprocess.Popen('%s "%s"' % (py_exe, p.abspath))
 
     def trail_space(self, filters=lambda p: p.ext == ".py"):
-        """Trail white space at end of each line for every ``.py`` file.
+        """
+        Trail white space at end of each line for every ``.py`` file.
 
         **中文文档**
 
@@ -1100,11 +1181,14 @@ class PathlibMatePath(object):
                 with open(p.abspath, "wb") as f:
                     f.write("\n".join(lines).encode("utf-8"))
 
-            except Exception as e:
+            except Exception as e:  # pragma: no cover
                 raise e
 
     def autopep8(self, **kwargs):
-        """Auto convert your python code in a directory to pep8 styled code.
+        """
+        Auto convert your python code in a directory to pep8 styled code.
+
+        :param kwargs: arguments for ``autopep8.fix_code`` method.
 
         **中文文档**
 

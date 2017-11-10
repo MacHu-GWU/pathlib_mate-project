@@ -94,15 +94,28 @@ def is_decreasing(array):
 
 
 def test_attribute():
+    HEXSTR_CHARSET = set("0123456789abcdef")
+
+    def assert_hexstr(text):
+        assert len(HEXSTR_CHARSET.union(set(text))) <= 16
+
     p = Path(__file__).absolute()
     assert isinstance(p.abspath, str)
     assert isinstance(p.dirpath, str)
+
     assert p.abspath == __file__
     assert p.dirpath == os.path.dirname(__file__)
     assert p.dirname == os.path.basename(os.path.dirname(__file__))
     assert p.basename == os.path.basename(__file__)
     assert p.fname == os.path.splitext(os.path.basename(__file__))[0]
     assert p.ext == os.path.splitext(__file__)[1]
+
+    assert_hexstr(p.abspath_hexstr)
+    assert_hexstr(p.dirpath_hexstr)
+    assert_hexstr(p.dirname_hexstr)
+    assert_hexstr(p.basename_hexstr)
+    assert_hexstr(p.fname_hexstr)
+
     assert len(p.md5) == 32
     assert len(p.get_partial_md5(1)) == 32
     assert p.size >= 1024
@@ -162,6 +175,13 @@ def test_change():
     assert p1.dirname == "folder"
     assert p1.dirpath.endswith("folder")
 
+    with raises(ValueError):
+        p.change(new_dirpath="new_dirpath", new_dirname="folder")
+    with raises(ValueError):
+        p.change(new_basename="hello.txt", new_fname="hello")
+    with raises(ValueError):
+        p.change(new_basename="hello.txt", new_ext="hello")
+
     # because __file__ is OS dependent, so don't test this.
     system_name = platform.system()
     if system_name == "Windows":
@@ -202,8 +222,12 @@ def test_moveto():
     # move directory
     p_dir = Path(__file__).change(new_basename="wow")
     n_files = p_dir.n_file
+    n_dir = p_dir.n_dir
+
     p_dir_new = p_dir.moveto(new_basename="wow1")
     assert n_files == p_dir_new.n_file
+    assert n_dir == p_dir_new.n_dir
+
     p_dir = p_dir_new.moveto(new_basename="wow")
 
 
@@ -263,23 +287,23 @@ def test_select_by_ext():
 
 
 def test_select_by_pattern_in_fname():
-    path = Path(__file__).absolute().parent.parent  # pathlibm_mate-project
+    path = Path(__file__).absolute().parent  # pathlibm_mate-project/tests
 
     for p in path.select_by_pattern_in_fname("test", case_sensitive=True):
         assert "test" in p.fname
 
     for p in path.select_by_pattern_in_fname("TEST", case_sensitive=False):
-        assert "test" in p.fname
+        assert "test" in p.fname.lower()
 
 
 def test_select_by_pattern_in_abspath():
-    path = Path(__file__).absolute().parent.parent  # pathlibm_mate-project
+    path = Path(__file__).absolute().parent  # pathlibm_mate-project/tests
 
     for p in path.select_by_pattern_in_abspath("test", case_sensitive=True):
         assert "test" in p.abspath
 
     for p in path.select_by_pattern_in_abspath("TEST", case_sensitive=False):
-        assert "test" in p.abspath
+        assert "test" in p.abspath.lower()
 
 
 def test_select_by_time():
@@ -354,6 +378,14 @@ def test_print_big_dir_and_big_file():
     """
     path = Path(__file__).absolute().parent.parent  # pathlibm_mate-project
     path.print_big_dir_and_big_file()
+
+
+def test_dir_stat_attribute():
+    p = Path(__file__).change(new_basename="app")
+    assert p.n_file == 4
+    assert p.n_subfile == 3
+    assert p.n_dir == 1
+    assert p.n_subdir == 1
 
 
 def test_file_stat():
