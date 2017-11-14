@@ -2,7 +2,7 @@
 pathlib_mate_venv/
 pathlib_mate.egg-info/
 pathlib_mate-*/
-index.rst
+
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

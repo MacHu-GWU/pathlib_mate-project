@@ -11,7 +11,8 @@ from .pkg import six, autopep8
 
 
 def _preprocess(path_or_path_list):
-    """Preprocess input argument, whether if it is:
+    """
+    Preprocess input argument, whether if it is:
 
     1. abspath
     2. Path instance
@@ -35,7 +36,8 @@ def _preprocess(path_or_path_list):
 
 
 def repr_data_size(size_in_bytes, precision=2):
-    """Return human readable string represent of a file size. Doesn"t support
+    """
+    Return human readable string represent of a file size. Doesn"t support
     size greater than 1EB.
 
     For example:
@@ -75,7 +77,8 @@ def repr_data_size(size_in_bytes, precision=2):
 
 
 def md5file(abspath, nbytes=0):
-    """Return md5 hash value of a piece of a file
+    """
+    Return md5 hash value of a piece of a file
 
     Estimate processing time on:
 
@@ -93,6 +96,56 @@ def md5file(abspath, nbytes=0):
     - 3.9G - 16.0 sec
     """
     m = hashlib.md5()
+    with open(abspath, "rb") as f:
+        if nbytes:
+            data = f.read(nbytes)
+            if data:
+                m.update(data)
+        else:
+            while True:
+                data = f.read(4 * 1 << 16)  # only use first 4GB data
+                if not data:
+                    break
+                m.update(data)
+    return m.hexdigest()
+
+
+def sha256file(abspath, nbytes=0):
+    """
+    Return sha256 hash value of a piece of a file
+
+    Estimate processing time on:
+
+    :param abspath: the absolute path to the file
+    :param nbytes: only has first N bytes of the file. if 0 or None,
+      hash all file
+    """
+    m = hashlib.sha256()
+    with open(abspath, "rb") as f:
+        if nbytes:
+            data = f.read(nbytes)
+            if data:
+                m.update(data)
+        else:
+            while True:
+                data = f.read(4 * 1 << 16)  # only use first 4GB data
+                if not data:
+                    break
+                m.update(data)
+    return m.hexdigest()
+
+
+def sha512file(abspath, nbytes=0):
+    """
+    Return sha512 hash value of a piece of a file
+
+    Estimate processing time on:
+
+    :param abspath: the absolute path to the file
+    :param nbytes: only has first N bytes of the file. if 0 or None,
+      hash all file
+    """
+    m = hashlib.sha512()
     with open(abspath, "rb") as f:
         if nbytes:
             data = f.read(nbytes)
@@ -262,6 +315,36 @@ class PathlibMatePath(object):
         Return md5 check sum of this file.
         """
         return md5file(self.abspath)
+
+    def get_partial_sha256(self, nbytes):
+        """
+        Return sha256 check sum of first n bytes of this file.
+        """
+        if nbytes in [0, None]:
+            raise ValueError("'nbytes' has to be positive integer.")
+        return sha256file(self.abspath, nbytes)
+
+    @property
+    def sha256(self):
+        """
+        Return sha256 check sum of this file.
+        """
+        return sha256file(self.abspath)
+
+    def get_partial_sha512(self, nbytes):
+        """
+        Return sha512 check sum of first n bytes of this file.
+        """
+        if nbytes in [0, None]:
+            raise ValueError("'nbytes' has to be positive integer.")
+        return sha512file(self.abspath, nbytes)
+
+    @property
+    def sha512(self):
+        """
+        Return md5 check sum of this file.
+        """
+        return sha512file(self.abspath)
 
     @property
     def size(self):
