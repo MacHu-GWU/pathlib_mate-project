@@ -55,60 +55,79 @@ Welcome to ``pathlib_mate`` Documentation
 
 Features:
 
-Convenient Attribute Accessor:
+**Convenient Attribute Accessor**:
 
 .. code-block:: python
 
     >>> p = Path("/Users/username/test.py").
+
     >>> p.abspath
     /Users/username/test.py
+
     >>> p.basename
     test.py
+
     >>> p.fname
     test
+
     >>> p.ext
     .py
+
     >>> p.dirname
     username
+
     >>> p.dirpath
     /Users/username
+
     >>> p.size
     1500
+
     >>> p.size_in_text
     1.46 KB
+
     >>> p.create_datetime
     datetime(2018, 1, 15, 8, 30, 15)
+
     >>> p.md5
     415f12f07a7e01486cc82856621e05bf
+
     >>> p.sha256
     d51512cb0ac71484c01c475409a73225d0149165024d7aac6d8e655eedf2c025
+
     >>> p.sha512
     7882fc375840cafa364eaf29dc424645b72fcdbe61fc3326c5afd98e70f696e4f390e0e3f159eac2cb60cedc0992ef7b5f8744a4481911e914a7c5b979e6de68
 
-Powerful Path Search:
+**Powerful Path Search**:
 
 .. code-block:: python
 
     >>> p = Path("/Users/username/Documents")
+
     >>> for path in p.select_file(recursive=True)
     ...
+
     >>> for path in p.select_file(recursive=False)
     ...
+
     >>> for path in p.select_dir(recursive=True)
     ...
+
     >>> for image_file in p.select_by_ext([".jpg", ".png"])
     ...
+
     >>> for big_file in p.select_by_size(min_size=1000000)
     ...
+
     >>> for video_file in p.select_video():
     ...
+
     # You can customize the filter anyway you want
     >>> def py_filter(p): return ".py" == p.ext.lower()
     >>> for py_file in p.select_file(py_filter):
     ...
 
 
-Eazy to use File / Dir Operation:
+**Eazy to use File / Dir Operation**:
 
 .. code-block:: python
 
@@ -143,7 +162,9 @@ Eazy to use File / Dir Operation:
     >>> p.remove()
 
 
-Powerful Production Tools:
+**Powerful Production Tools**:
+
+.. code-block:: python
 
     >>> p = Path("/Users/username/Documents/Github/pathlib_mate-project")
 

@@ -185,11 +185,11 @@ You can easily customize the rules you use for filtering. You only need to defin
 
     def filter_image_file(p):
         """This filter returns True only if it is a .jpg and .png file.
-	    """
+        """
         return p.ext.lower() in [".jpg", ".png"]
 
     # Filter image file
-	>>> for p in path.select_file(filter_image_file):
+    >>> for p in path.select_file(filter_image_file):
     ...
 
 Plus, ``pathlib_mate`` provides a set of utility methods for selection (They all support the ``recursive`` keyword):
@@ -215,10 +215,10 @@ Sort set of path is super easy in ``pathlib_mate``:
 
 .. code-block:: python
 
-	result = path.select_file()
-	# sort file by its size, from largest to smallest
-	>>> for p in Path.sort_by_size(result, reverse=True):
-	...
+    result = path.select_file()
+    # sort file by its size, from largest to smallest
+    >>> for p in Path.sort_by_size(result, reverse=True):
+    ...
 
 In addition, you have these options for sorting.
 
@@ -235,16 +235,16 @@ In addition, you have these options for sorting.
 Utility Tools
 ------------------------------------------------------------------------------
 
-- :meth:`~pathlib_mate.mate_tool_box.ToxBox.file_stat()`: return how many file, directory and totalsize of a direcoty.
-- :meth:`~pathlib_mate.mate_tool_box.ToxBox.file_stat_for_all()`: return stat for this directory and all subfolders.
-- :meth:`~pathlib_mate.mate_tool_box.ToxBox.print_big_dir()`: Display top-n big directory in a directory.
-- :meth:`~pathlib_mate.mate_tool_box.ToxBox.print_big_file()`: Display top-n big file in a directory.
-- :meth:`~pathlib_mate.mate_tool_box.ToxBox.print_big_dir_and_big_file()`: Display top-n big dir and big file in a directory.
-- :meth:`~pathlib_mate.mate_tool_box_zip.ToxBoxZip.make_zip_archive` ``(dst=None)``: Use .gitignore file format to select files except those user defined, and make a zip archive for that directory.
-- :meth:`~pathlib_mate.mate_tool_box_zip.ToxBoxZip.backup` ``(dst=None, ignore=None, ignore_ext=None, ignore_pattern=None, ignore_size_smaller_than=None, ignore_size_larger_than=None, case_sensitive=False)``: Use .gitignore file format to select files except those user defined, and make a zip archive for that directory.
-- :meth:`~pathlib_mate.pathlib.PathlibMatePath.execute_pyfile()`: execute all python file as main script. usually for testing.
-- :meth:`~pathlib_mate.pathlib.PathlibMatePath.trail_space()` ``(filters=lambda p: p.ext == ".py")``: trail all tailing empty space for each line for selected files.
-- :meth:`~pathlib_mate.pathlib.PathlibMatePath.autopep8()`: auto reformat all python script in pep8 style.
+- :meth:`~pathlib_mate.mate_tool_box.ToolBox.file_stat()`: return how many file, directory and totalsize of a direcoty.
+- :meth:`~pathlib_mate.mate_tool_box.ToolBox.file_stat_for_all()`: return stat for this directory and all subfolders.
+- :meth:`~pathlib_mate.mate_tool_box.ToolBox.print_big_dir()`: Display top-n big directory in a directory.
+- :meth:`~pathlib_mate.mate_tool_box.ToolBox.print_big_file()`: Display top-n big file in a directory.
+- :meth:`~pathlib_mate.mate_tool_box.ToolBox.print_big_dir_and_big_file()`: Display top-n big dir and big file in a directory.
+- :meth:`~pathlib_mate.mate_tool_box_zip.ToolBoxZip.make_zip_archive` ``(dst=None)``: Use .gitignore file format to select files except those user defined, and make a zip archive for that directory.
+- :meth:`~pathlib_mate.mate_tool_box_zip.ToolBoxZip.backup` ``(dst=None, ignore=None, ignore_ext=None, ignore_pattern=None, ignore_size_smaller_than=None, ignore_size_larger_than=None, case_sensitive=False)``: Use .gitignore file format to select files except those user defined, and make a zip archive for that directory.
+- :meth:`~pathlib_mate.mate_tool_box.ToolBox.execute_pyfile()`: execute all python file as main script. usually for testing.
+- :meth:`~pathlib_mate.mate_tool_box.ToolBox.trail_space()` ``(filters=lambda p: p.ext == ".py")``: trail all tailing empty space for each line for selected files.
+- :meth:`~pathlib_mate.mate_tool_box.ToolBox.autopep8()`: auto reformat all python script in pep8 style.
 
 
 .. include:: author.rst
