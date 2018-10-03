@@ -2,9 +2,8 @@
 # for more info: https://coverage.readthedocs.io/en/coverage-4.4.1/config.html
 [run]
 omit =
-    pathlib_mate/pkg/*
-    pathlib_mate/pathlib.py
-    pathlib_mate/zzz_ezinstall.py
+    pathlib_mate/pathlib2.py
+    pathlib_mate/winzip.py
 
 [report]
 # Regexes for lines to exclude from consideration
