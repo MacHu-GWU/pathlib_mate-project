@@ -12,6 +12,7 @@ class HashesMethods(object):
     Provide hash functions.
     """
     # --- file check sum ---
+
     def get_partial_md5(self, nbytes):
         """
         Return md5 check sum of first n bytes of this file.

@@ -3,7 +3,7 @@
 
 import pytest
 import shutil
-from pathlib_mate import PathCls as Path
+from pathlib_mate import Path
 
 
 def teardown_module(module):
@@ -47,7 +47,8 @@ class TestToolBoxStateful(object):
         dst = Path(__file__) \
             .change(new_basename="app-backup-%s.zip" % random.randint(1, 9999))
         assert dst.exists() is False
-        p.backup(dst.abspath, ignore_size_larger_than=1000, case_sensitive=False)
+        p.backup(dst.abspath, ignore_size_larger_than=1000,
+                 case_sensitive=False)
         assert dst.exists() is True
 
     def test_autopep8(self):

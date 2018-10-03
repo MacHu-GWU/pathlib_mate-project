@@ -21,5 +21,4 @@ try:
 
     PathCls = WindowsPath if os.name == "nt" else PosixPath
 except Exception as e:  # pragma: no cover
-    print(e)
     pass

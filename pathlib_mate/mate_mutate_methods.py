@@ -13,6 +13,7 @@ class MutateMethods(object):
     Provide methods to mutate the Path instance.
     """
     # --- methods return another Path ---
+
     def drop_parts(self, n=1):
         """
         Drop parts from the ends.

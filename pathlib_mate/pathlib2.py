@@ -286,9 +286,9 @@ class _WindowsFlavour(_Flavour):
     ext_namespace_prefix = '\\\\?\\'
 
     reserved_names = (
-            set(['CON', 'PRN', 'AUX', 'NUL']) |
-            set(['COM%d' % i for i in range(1, 10)]) |
-            set(['LPT%d' % i for i in range(1, 10)])
+        set(['CON', 'PRN', 'AUX', 'NUL']) |
+        set(['COM%d' % i for i in range(1, 10)]) |
+        set(['LPT%d' % i for i in range(1, 10)])
     )
 
     # Interesting findings about extended paths:
@@ -945,8 +945,8 @@ class PurePath(object):
         if not isinstance(other, PurePath):
             return NotImplemented
         return (
-                self._cparts == other._cparts
-                and self._flavour is other._flavour)
+            self._cparts == other._cparts
+            and self._flavour is other._flavour)
 
     def __ne__(self, other):
         return not self == other

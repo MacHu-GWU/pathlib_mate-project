@@ -6,7 +6,8 @@ from pathlib_mate import str_encode
 
 
 def test():
-    assert __file__ == str_encode.decode_hexstr(str_encode.encode_hexstr(__file__))
+    assert __file__ == str_encode.decode_hexstr(
+        str_encode.encode_hexstr(__file__))
 
 
 if __name__ == "__main__":

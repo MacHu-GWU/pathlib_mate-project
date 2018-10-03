@@ -7,7 +7,7 @@ from pytest import raises
 import os
 import six
 from datetime import datetime
-from pathlib_mate import PathCls as Path
+from pathlib_mate import Path
 
 
 class TestAttrAccessor(object):
@@ -38,7 +38,8 @@ class TestAttrAccessor(object):
         assert len(p.get_partial_md5(1)) == 32
         assert p.size >= 1024
 
-        ts_2016_1_1 = (datetime(2016, 1, 1) - datetime(1970, 1, 1)).total_seconds()
+        ts_2016_1_1 = (datetime(2016, 1, 1) -
+                       datetime(1970, 1, 1)).total_seconds()
         assert p.ctime >= ts_2016_1_1
         assert p.mtime >= ts_2016_1_1
         assert p.atime >= ts_2016_1_1
@@ -46,7 +47,8 @@ class TestAttrAccessor(object):
         assert p.access_datetime >= datetime(2016, 1, 1)
         assert p.create_datetime >= datetime(2016, 1, 1)
         assert "KB" in p.size_in_text
-        assert p.get_partial_md5(nbytes=10) == "2030c5e97b2761d126f41dbd610d80a7"
+        assert p.get_partial_md5(
+            nbytes=10) == "2030c5e97b2761d126f41dbd610d80a7"
         with raises(ValueError):
             p.get_partial_md5(-1)
 

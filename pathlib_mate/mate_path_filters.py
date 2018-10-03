@@ -36,6 +36,7 @@ class PathFilters(object):
     Provide friendly path filter API.
     """
     # --- assert something ---
+
     def assert_is_file_and_exists(self):
         """
         Assert it is a directory and exists in file system.

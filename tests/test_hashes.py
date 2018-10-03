@@ -16,11 +16,14 @@ def test_exception():
 
 def test_get_fingerprint():
     md5_1 = hashes.get_file_fingerprint(__file__, hashlib.md5)
-    md5_2 = hashes.get_file_fingerprint(__file__, hashlib.md5, chunk_size=1 << 9)
+    md5_2 = hashes.get_file_fingerprint(
+        __file__, hashlib.md5, chunk_size=1 << 9)
     assert md5_1 == md5_2
 
-    md5_1 = hashes.get_file_fingerprint(__file__, hashlib.md5, nbytes=500, chunk_size=128)
-    md5_2 = hashes.get_file_fingerprint(__file__, hashlib.md5, nbytes=500, chunk_size=1024)
+    md5_1 = hashes.get_file_fingerprint(
+        __file__, hashlib.md5, nbytes=500, chunk_size=128)
+    md5_2 = hashes.get_file_fingerprint(
+        __file__, hashlib.md5, nbytes=500, chunk_size=1024)
     assert md5_1 == md5_2
 
 

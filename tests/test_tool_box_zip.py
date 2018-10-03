@@ -2,8 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import pytest
-from pytest import raises, approx
-from pathlib_mate import PathCls as Path
+from pathlib_mate import Path
 
 
 def teardown_module(module):

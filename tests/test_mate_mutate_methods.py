@@ -5,7 +5,7 @@ import pytest
 from pytest import raises
 import shutil
 import platform
-from pathlib_mate import PathCls as Path
+from pathlib_mate import Path
 
 
 def setup_module(module):
@@ -132,7 +132,7 @@ class TestMutateMethods(object):
         # move file into not existsing folder, and create the folder
         p_file_new = p_file.moveto(
             new_abspath=Path(__file__).parent.
-                append_parts("NOT-EXIST-FOLDER-MOVETO", "file_to_move.txt"),
+            append_parts("NOT-EXIST-FOLDER-MOVETO", "file_to_move.txt"),
             makedirs=True,
         )
         p_file = p_file_new.moveto(new_abspath=p_file.abspath)
@@ -164,13 +164,15 @@ class TestMutateMethods(object):
 
         # copy file into not existing folder, and create the folder
         p_file_new = p_file.change(
-            new_abspath=Path(__file__).parent.append_parts("NOT-EXIST-FOLDER-COPYTO", "file_to_copy.txt"),
+            new_abspath=Path(__file__).parent.append_parts(
+                "NOT-EXIST-FOLDER-COPYTO", "file_to_copy.txt"),
         )
         assert p_file_new.exists() is False
         assert p_file_new.parent.exists() is False
-        
+
         p_file_new = p_file.copyto(
-            new_abspath=Path(__file__).parent.append_parts("NOT-EXIST-FOLDER-COPYTO", "file_to_copy.txt"),
+            new_abspath=Path(__file__).parent.append_parts(
+                "NOT-EXIST-FOLDER-COPYTO", "file_to_copy.txt"),
             makedirs=True,
         )
         assert p_file_new.exists() is True

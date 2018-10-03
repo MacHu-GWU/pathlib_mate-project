@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import pytest
-from pathlib_mate import PathCls as Path
+from pathlib_mate import Path
 
 
 class TestHashesMethods(object):
