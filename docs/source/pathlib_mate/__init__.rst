@@ -17,6 +17,7 @@ sub packages and modules
     mate_mutate_methods <mate_mutate_methods>
     mate_path_filters <mate_path_filters>
     mate_tool_box <mate_tool_box>
+    mate_tool_box_zip <mate_tool_box_zip>
     pathlib2 <pathlib2>
     str_encode <str_encode>
     winzip <winzip>
