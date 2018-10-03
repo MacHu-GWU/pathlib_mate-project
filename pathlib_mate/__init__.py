@@ -18,10 +18,7 @@ import os
 
 try:
     from .pathlib2 import Path, WindowsPath, PosixPath
-except Exception as e:  # pragma: no cover
-    pass
 
-try:
     PathCls = WindowsPath if os.name == "nt" else PosixPath
 except Exception as e:  # pragma: no cover
     pass

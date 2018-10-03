@@ -7,7 +7,7 @@ from pytest import raises
 import os
 import six
 from datetime import datetime
-from pathlib_mate import Path
+from pathlib_mate.pathlib2 import Path
 
 
 class TestAttrAccessor(object):

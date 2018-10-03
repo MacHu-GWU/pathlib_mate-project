@@ -3,7 +3,7 @@
 
 import pytest
 from pytest import raises
-from pathlib_mate import Path
+from pathlib_mate.pathlib2 import Path
 
 
 def is_increasing(array):
