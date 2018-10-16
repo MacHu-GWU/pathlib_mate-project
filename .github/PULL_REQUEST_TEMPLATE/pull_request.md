@@ -1,9 +1,3 @@
----
-name: Pull request
-about: A general purpose Pull Request
-
----
-
 **Why**
 
 A clear and concise description of why you start this PR.
