@@ -34,6 +34,7 @@ class TestToolBoxStateless(object):
         """
         path = Path(__file__).absolute().parent.parent  # pathlibm_mate-project
         path.print_big_file()
+        path.print_big_dir()
 
     def test_print_big_dir_and_big_file(self):
         """
