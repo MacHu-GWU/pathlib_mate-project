@@ -47,7 +47,7 @@ class TestAttrAccessor(object):
         assert p.create_datetime >= datetime(2016, 1, 1)
         assert "KB" in p.size_in_text
         assert p.get_partial_md5(
-            nbytes=10) == "2030c5e97b2761d126f41dbd610d80a7"
+            nbytes=10) == "52ee8aa6c482035e08afabda0f0f8dd8"
         with raises(ValueError):
             p.get_partial_md5(-1)
 
