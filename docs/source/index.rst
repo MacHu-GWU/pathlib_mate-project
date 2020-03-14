@@ -1,15 +1,19 @@
+.. contents::
+
+Release v\ |release| (:ref:`What's new? <release_history>`).
+
 .. include:: ../../README.rst
 
 .. _document:
 
 Documentation
-==============================================================================
+------------------------------------------------------------------------------
 
 For all ``pathlib_mate`` exclusive features, see :class:`~pathlib_mate.mate_attr_accessor.AttrAccessor`.
 
 
 Attribute
-------------------------------------------------------------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 First, let's use a simple file for demonstration ``C:\Users\admin\readme.txt``:
 
@@ -118,7 +122,7 @@ First, let's use a simple file for demonstration ``C:\Users\admin\readme.txt``:
 
 
 Method
-------------------------------------------------------------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 **Rename / Cut a file**: :meth:`~pathlib_mate.mate_mutate_methods.MutateMethods.moveto()`
 
@@ -233,7 +237,7 @@ In addition, you have these options for sorting.
 
 
 Utility Tools
-------------------------------------------------------------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 - :meth:`~pathlib_mate.mate_tool_box.ToolBox.file_stat()`: return how many file, directory and totalsize of a direcoty.
 - :meth:`~pathlib_mate.mate_tool_box.ToolBox.file_stat_for_all()`: return stat for this directory and all subfolders.
@@ -247,7 +251,7 @@ Utility Tools
 - :meth:`~pathlib_mate.mate_tool_box.ToolBox.autopep8()`: auto reformat all python script in pep8 style.
 
 
-.. include:: author.rst
+.. include:: ../../AUTHORS.rst
 
 
 API Document

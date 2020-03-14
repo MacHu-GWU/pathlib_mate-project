@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
 """
@@ -90,11 +89,13 @@ if __name__ == "__main__":
 
     # Project Url
     URL = "https://github.com/{0}/{1}".format(GITHUB_USERNAME, repository_name)
+
     # Use todays date as GitHub release tag
     github_release_tag = str(date.today())
+
     # Source code download url
-    DOWNLOAD_URL = "https://github.com/{0}/{1}/tarball/{2}".format(
-        GITHUB_USERNAME, repository_name, github_release_tag)
+    DOWNLOAD_URL = "https://pypi.python.org/pypi/{0}/{1}#downloads".format(
+        PKG_NAME, VERSION)
 
     try:
         LICENSE = package.__license__
@@ -122,20 +123,43 @@ if __name__ == "__main__":
         "Programming Language :: Python :: 3.5",
         "Programming Language :: Python :: 3.6",
     ]
+    """
+    Full list can be found at: https://pypi.python.org/pypi?%3Aaction=list_classifiers
+    """
 
-    # Read requirements.txt, ignore comments
-    try:
-        REQUIRES = list()
-        f = open("requirements.txt", "rb")
+
+    def read_requirements_file(path):
+        """
+        Read requirements.txt, ignore comments
+        """
+        requires = list()
+        f = open(path, "rb")
         for line in f.read().decode("utf-8").split("\n"):
             line = line.strip()
             if "#" in line:
                 line = line[:line.find("#")].strip()
             if line:
-                REQUIRES.append(line)
+                requires.append(line)
+        return requires
+
+
+    try:
+        REQUIRES = read_requirements_file("requirements.txt")
     except:
         print("'requirements.txt' not found!")
         REQUIRES = list()
+
+    EXTRA_REQUIRE = dict()
+
+    try:
+        EXTRA_REQUIRE["tests"] = read_requirements_file("requirements-test.txt")
+    except:
+        print("'requirements-test.txt' not found!")
+
+    try:
+        EXTRA_REQUIRE["docs"] = read_requirements_file("requirements-doc.txt")
+    except:
+        print("'requirements-test.txt' not found!")
 
     setup(
         name=PKG_NAME,
@@ -156,6 +180,7 @@ if __name__ == "__main__":
         platforms=PLATFORMS,
         license=LICENSE,
         install_requires=REQUIRES,
+        extras_require=EXTRA_REQUIRE,
     )
 
 """
@@ -187,8 +212,8 @@ Frequent used classifiers List = [
     "Intended Audience :: System Administrators",
     "Intended Audience :: Telecommunications Industry",
 
-    "License :: OSI Approved :: BSD License",
     "License :: OSI Approved :: MIT License",
+    "License :: OSI Approved :: BSD License",
     "License :: OSI Approved :: Apache Software License",
     "License :: OSI Approved :: GNU General Public License (GPL)",
     "License :: OSI Approved :: GNU Lesser General Public License v3 (LGPLv3)",
@@ -208,6 +233,7 @@ Frequent used classifiers List = [
     "Programming Language :: Python :: 3.4",
     "Programming Language :: Python :: 3.5",
     "Programming Language :: Python :: 3.6",
+    "Programming Language :: Python :: 3.7",
     "Programming Language :: Python :: 3 :: Only",
 ]
 """
