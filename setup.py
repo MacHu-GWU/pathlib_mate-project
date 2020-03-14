@@ -159,7 +159,7 @@ if __name__ == "__main__":
     try:
         EXTRA_REQUIRE["docs"] = read_requirements_file("requirements-doc.txt")
     except:
-        print("'requirements-test.txt' not found!")
+        print("'requirements-doc.txt' not found!")
 
     setup(
         name=PKG_NAME,
