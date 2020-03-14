@@ -7,6 +7,12 @@ Provide methods to mutate the Path instance.
 import os
 import shutil
 
+# for type hint only
+try:
+    from .pathlib2 import Path
+except ImportError: # pragma: no cover
+    pass
+
 
 class MutateMethods(object):
     """
@@ -21,6 +27,7 @@ class MutateMethods(object):
         :param n: integer, number of parts you wants to drop from ends.
           n has to greater equal than 0.
 
+        :rtype: Path
         :returns: a new Path object.
 
         Example::
@@ -37,6 +44,7 @@ class MutateMethods(object):
         """
         Append some parts to the end of this path.
 
+        :rtype: Path
         :returns: a new Path object.
 
         Example::
@@ -58,6 +66,8 @@ class MutateMethods(object):
                new_ext=None):
         """
         Return a new :class:`pathlib_mate.pathlib2.Path` object with updated information.
+
+        :rtype: Path
         """
         if new_abspath is not None:
             p = self.__class__(new_abspath)
@@ -111,6 +121,8 @@ class MutateMethods(object):
         An advanced :meth:`pathlib_mate.pathlib2.Path.rename` method provide ability to rename by
         each components of a path. A new ``Path`` instance will returns.
 
+        :rtype: Path
+
         **中文文档**
 
         高级重命名函数, 允许用于根据路径的各个组成部分进行重命名。但和os.rename
@@ -148,6 +160,8 @@ class MutateMethods(object):
                makedirs=False):
         """
         Copy this file to other place.
+
+        :rtype: Path
         """
         self.assert_exists()
 

@@ -4,6 +4,17 @@
 Provide friendly path filter API.
 """
 
+# for type hint only
+try:
+    import typing
+except: # pragma: no cover
+    pass
+
+try:
+    from .pathlib2 import Path
+except ImportError: # pragma: no cover
+    pass
+
 from datetime import datetime
 
 from .helper import ensure_list
@@ -22,6 +33,9 @@ def _sort_by(key):
 
     @staticmethod
     def sort_by(p_list, reverse=False):
+        """
+        :rtype: typing.Iterable[Path]
+        """
         return sorted(
             p_list,
             key=lambda p: getattr(p, key),
@@ -69,6 +83,8 @@ class PathFilters(object):
           boolean as a output.
         :param recursive: include files in subfolder or not.
 
+        :rtype: typing.Iterable[Path]
+
         **中文文档**
 
         根据filters中定义的条件选择路径。
@@ -87,6 +103,8 @@ class PathFilters(object):
     def select_file(self, filters=all_true, recursive=True):
         """Select file path by criterion.
 
+        :rtype: typing.Iterable[Path]
+
         **中文文档**
 
         根据filters中定义的条件选择文件。
@@ -97,6 +115,8 @@ class PathFilters(object):
 
     def select_dir(self, filters=all_true, recursive=True):
         """Select dir path by criterion.
+
+        :rtype: typing.Iterable[Path]
 
         **中文文档**
 
@@ -110,6 +130,8 @@ class PathFilters(object):
     def n_file(self):
         """
         Count how many files in this directory. Including file in sub folder.
+
+        :rtype: int
         """
         self.assert_is_dir_and_exists()
         n = 0
@@ -121,6 +143,8 @@ class PathFilters(object):
     def n_dir(self):
         """
         Count how many folders in this directory. Including folder in sub folder.
+
+        :rtype: int
         """
         self.assert_is_dir_and_exists()
         n = 0
@@ -133,6 +157,8 @@ class PathFilters(object):
         """
         Count how many files in this directory (doesn't include files in
         sub folders).
+
+        :rtype: int
         """
         self.assert_is_dir_and_exists()
         n = 0
@@ -145,6 +171,8 @@ class PathFilters(object):
         """
         Count how many folders in this directory (doesn't include folder in
         sub folders).
+
+        :rtype: int
         """
         self.assert_is_dir_and_exists()
         n = 0
@@ -157,7 +185,9 @@ class PathFilters(object):
         """
         Select file path by extension.
 
-        :param ext:
+        :type ext: str
+        :type recursive: bool
+        :rtype: typing.Iterable[Path]
 
         **中文文档**
 
@@ -175,6 +205,10 @@ class PathFilters(object):
                                    case_sensitive=False):
         """
         Select file path by text pattern in file name.
+
+        :type pattern: str
+        :type recursive: bool
+        :rtype: typing.Iterable[Path]
 
         **中文文档**
 
@@ -198,6 +232,10 @@ class PathFilters(object):
         """
         Select file path by text pattern in absolute path.
 
+        :type pattern: str
+        :type recursive: bool
+        :rtype: typing.Iterable[Path]
+
         **中文文档**
 
         选择绝对路径中包含指定子字符串的文件。
@@ -217,6 +255,9 @@ class PathFilters(object):
         """
         Select file path by size.
 
+        :type recursive: bool
+        :rtype: typing.Iterable[Path]
+
         **中文文档**
 
         选择所有文件大小在一定范围内的文件。
@@ -234,6 +275,9 @@ class PathFilters(object):
         :param min_time: lower bound timestamp
         :param max_time: upper bound timestamp
 
+        :type recursive: bool
+        :rtype: typing.Iterable[Path]
+
         **中文文档**
 
         选择所有 :attr:`pathlib_mate.pathlib2.Path.mtime` 在一定范围内的文件。
@@ -249,6 +293,9 @@ class PathFilters(object):
 
         :param min_time: lower bound timestamp
         :param max_time: upper bound timestamp
+
+        :type recursive: bool
+        :rtype: typing.Iterable[Path]
 
         **中文文档**
 
@@ -266,6 +313,9 @@ class PathFilters(object):
 
         :param min_time: lower bound timestamp
         :param max_time: upper bound timestamp
+
+        :type recursive: bool
+        :rtype: typing.Iterable[Path]
 
         **中文文档**
 
@@ -285,6 +335,9 @@ class PathFilters(object):
     def select_image(self, recursive=True):
         """
         Select image file.
+
+        :type recursive: bool
+        :rtype: typing.Iterable[Path]
         """
         return self.select_by_ext(self._image_ext, recursive)
 
@@ -297,6 +350,9 @@ class PathFilters(object):
     def select_audio(self, recursive=True):  # pragma: no cover
         """
         Select audio file.
+
+        :type recursive: bool
+        :rtype: typing.Iterable[Path]
         """
         return self.select_by_ext(self._audio_ext, recursive)
 
@@ -309,6 +365,9 @@ class PathFilters(object):
     def select_video(self, recursive=True):  # pragma: no cover
         """
         Select video file.
+
+        :type recursive: bool
+        :rtype: typing.Iterable[Path]
         """
         return self.select_by_ext(self._video_ext, recursive)
 
@@ -317,6 +376,9 @@ class PathFilters(object):
     def select_word(self, recursive=True):  # pragma: no cover
         """
         Select Microsoft Word file.
+
+        :type recursive: bool
+        :rtype: typing.Iterable[Path]
         """
         return self.select_by_ext(self._ms_word_ext, recursive)
 
@@ -325,13 +387,20 @@ class PathFilters(object):
     def select_excel(self, recursive=True):  # pragma: no cover
         """
         Select Microsoft Excel file.
+
+        :type recursive: bool
+        :rtype: typing.Iterable[Path]
         """
         return self.select_by_ext(self._ms_excel_ext, recursive)
 
     _archive_ext = [".zip", ".rar", ".gz", ".tar.gz", ".tgz", ".7z"]
 
     def select_archive(self, recursive=True):  # pragma: no cover
-        """Select compressed archive file.
+        """
+        Select compressed archive file.
+
+        :type recursive: bool
+        :rtype: typing.Iterable[Path]
         """
         return self.select_by_ext(self._archive_ext, recursive)
 

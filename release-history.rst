@@ -12,6 +12,21 @@ x.x.x (TODO)
 **Miscellaneous**
 
 
+1.0.0 (2020-03-14) First Production Ready Version
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+**Features and Improvements**
+
+- type hint support for all method.
+
+**Minor Improvements**
+
+- since Python2.7 is no longer supported. but pathlib_mate still supports Python2.7, it bump ``pathlib2`` version to the latest 2.5.3
+
+**Bugfixes**
+
+**Miscellaneous**
+
+
 0.0.11 (2017-08-31) MileStone
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 A stable, rich features, fully tested version.

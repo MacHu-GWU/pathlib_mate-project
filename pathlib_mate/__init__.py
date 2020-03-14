@@ -6,7 +6,8 @@ pathlib_mate provide extensive methods, attributes for pathlib.
 
 from __future__ import print_function
 
-__version__ = "0.0.15"
+from ._version import __version__
+
 __short_description__ = "An extended and more powerful pathlib."
 __license__ = "MIT"
 __author__ = "Sanhe Hu"

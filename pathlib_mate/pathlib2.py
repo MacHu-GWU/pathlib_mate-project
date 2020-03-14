@@ -1,22 +1,13 @@
 # Copyright (c) 2014-2017 Matthias C. M. Troffaes
 # Copyright (c) 2012-2014 Antoine Pitrou and contributors
 # Distributed under the terms of the MIT License.
+# VERSION 2.5.3
 
-"""
-This is a REVISED version of standard pathlib.
-download from https://pypi.python.org/pypi/pathlib2/
-
-:
-
-line 734::
-
-    class PurePath(object):
-        __slots__ = (
-            '_drv', '_root', '_parts',
-            '_str', '_hash', '_pparts', '_cached_cparts',
-            '_stat', # <--- PLEASE ADD THIS!
-        )
-"""
+# for python2 type hint
+try:
+    import typing
+except: # pragma: no cover
+    pass
 
 import ctypes
 import fnmatch
@@ -28,17 +19,23 @@ import posixpath
 import re
 import six
 import sys
-from collections import Sequence
-from errno import EINVAL, ENOENT, ENOTDIR, EEXIST, EPERM, EACCES
-from operator import attrgetter
 
+from errno import EINVAL, ENOENT, ENOTDIR, EBADF
+from errno import EEXIST, EPERM, EACCES
+from operator import attrgetter
 from stat import (
     S_ISDIR, S_ISLNK, S_ISREG, S_ISSOCK, S_ISBLK, S_ISCHR, S_ISFIFO)
+
+try:
+    from collections.abc import Sequence
+except ImportError:
+    from collections import Sequence
 
 try:
     from urllib import quote as urlquote_from_bytes
 except ImportError:
     from urllib.parse import quote_from_bytes as urlquote_from_bytes
+
 
 try:
     intern = intern
@@ -48,7 +45,6 @@ except NameError:
 supports_symlinks = True
 if os.name == 'nt':
     import nt
-
     if sys.getwindowsversion()[:2] >= (6, 0) and sys.version_info >= (3, 2):
         from nt import _getfinalpathname
     else:
@@ -65,12 +61,23 @@ except ImportError:
 __all__ = [
     "PurePath", "PurePosixPath", "PureWindowsPath",
     "Path", "PosixPath", "WindowsPath",
-]
-
+    ]
 
 #
 # Internals
 #
+
+# EBADF - guard agains macOS `stat` throwing EBADF
+_IGNORED_ERROS = (ENOENT, ENOTDIR, EBADF)
+
+_IGNORED_WINERRORS = (
+    21,  # ERROR_NOT_READY - drive exists but is not accessible
+)
+
+
+def _ignore_error(exception):
+    return (getattr(exception, 'errno', None) in _IGNORED_ERROS or
+            getattr(exception, 'winerror', None) in _IGNORED_WINERRORS)
 
 
 def _py2_fsencode(parts):
@@ -108,9 +115,25 @@ def _try_except_filenotfounderror(try_func, except_func):
             try_func()
         except FileNotFoundError as exc:
             except_func(exc)
+    elif os.name != 'nt':
+        try:
+            try_func()
+        except EnvironmentError as exc:
+            if exc.errno != ENOENT:
+                raise
+            else:
+                except_func(exc)
     else:
         try:
             try_func()
+        except WindowsError as exc:
+            # errno contains winerror
+            # 2 = file not found
+            # 3 = path not found
+            if exc.errno not in (2, 3):
+                raise
+            else:
+                except_func(exc)
         except EnvironmentError as exc:
             if exc.errno != ENOENT:
                 raise
@@ -207,6 +230,7 @@ def _is_wildcard_pattern(pat):
 
 
 class _Flavour(object):
+
     """A flavour implements a particular (platform-specific) set of path
     semantics."""
 
@@ -289,7 +313,7 @@ class _WindowsFlavour(_Flavour):
         set(['CON', 'PRN', 'AUX', 'NUL']) |
         set(['COM%d' % i for i in range(1, 10)]) |
         set(['LPT%d' % i for i in range(1, 10)])
-    )
+        )
 
     # Interesting findings about extended paths:
     # - '\\?\c:\a', '//?/c:\a' and '//?/c:/a' are all supported
@@ -353,16 +377,26 @@ class _WindowsFlavour(_Flavour):
             else:
                 # End of the path after the first one not found
                 tail_parts = []
+
+                def _try_func():
+                    result[0] = self._ext_to_normal(_getfinalpathname(s))
+                    # if there was no exception, set flag to 0
+                    result[1] = 0
+
+                def _exc_func(exc):
+                    pass
+
                 while True:
-                    try:
-                        s = self._ext_to_normal(_getfinalpathname(s))
-                    except FileNotFoundError:
+                    result = [None, 1]
+                    _try_except_filenotfounderror(_try_func, _exc_func)
+                    if result[1] == 1:  # file not found exception raised
                         previous_s = s
                         s, tail = os.path.split(s)
                         tail_parts.append(tail)
                         if previous_s == s:
                             return path
                     else:
+                        s = result[0]
                         return os.path.join(s, *reversed(tail_parts))
         # Means fallback on absolute
         return None
@@ -510,7 +544,6 @@ class _PosixFlavour(_Flavour):
                     seen[newpath] = path  # resolved symlink
 
             return path
-
         # NOTE: according to POSIX, getcwd() cannot contain path components
         # which are symlinks.
         base = '' if path.is_absolute() else os.getcwd()
@@ -546,6 +579,7 @@ _posix_flavour = _PosixFlavour()
 
 
 class _Accessor:
+
     """An accessor implements a particular (system-specific or not) way of
     accessing paths on the filesystem."""
 
@@ -556,14 +590,12 @@ class _NormalAccessor(_Accessor):
         @functools.wraps(strfunc)
         def wrapped(pathobj, *args):
             return strfunc(str(pathobj), *args)
-
         return staticmethod(wrapped)
 
     def _wrap_binary_strfunc(strfunc):
         @functools.wraps(strfunc)
         def wrapped(pathobjA, pathobjB, *args):
             return strfunc(str(pathobjA), str(pathobjB), *args)
-
         return staticmethod(wrapped)
 
     stat = _wrap_strfunc(os.stat)
@@ -642,6 +674,7 @@ if hasattr(functools, "lru_cache"):
 
 
 class _Selector:
+
     """A selector matches a specific glob pattern part against the children
     of a given path."""
 
@@ -733,7 +766,13 @@ class _RecursiveWildcardSelector(_Selector):
         def try_iter():
             entries = list(scandir(parent_path))
             for entry in entries:
-                if entry.is_dir() and not entry.is_symlink():
+                entry_is_dir = False
+                try:
+                    entry_is_dir = entry.is_dir()
+                except OSError as e:
+                    if not _ignore_error(e):
+                        raise
+                if entry_is_dir and not entry.is_symlink():
                     path = parent_path._make_child_relpath(entry.name)
                     for p in self._iterate_directories(path, is_dir, scandir):
                         yield p
@@ -773,6 +812,7 @@ class _RecursiveWildcardSelector(_Selector):
 #
 
 class _PathParents(Sequence):
+
     """This object provides sequence-like access to the logical ancestors
     of a path.  Don't try to construct it yourself."""
     __slots__ = ('_pathcls', '_drv', '_root', '_parts')
@@ -801,6 +841,7 @@ class _PathParents(Sequence):
 
 
 class PurePath(object):
+
     """PurePath represents a filesystem path and offers operations which
     don't imply any actual filesystem I/O.  Depending on your system,
     instantiating a PurePath will return either a PurePosixPath or a
@@ -810,7 +851,6 @@ class PurePath(object):
     __slots__ = (
         '_drv', '_root', '_parts',
         '_str', '_hash', '_pparts', '_cached_cparts',
-        '_stat',
     )
 
     def __new__(cls, *args):
@@ -849,7 +889,11 @@ class PurePath(object):
                 # also handle unicode for PY2 (six.text_type = unicode)
                 elif six.PY2 and isinstance(a, six.text_type):
                     # cast to str using filesystem encoding
-                    parts.append(a.encode(sys.getfilesystemencoding()))
+                    # note: in rare circumstances, on Python < 3.2,
+                    # getfilesystemencoding can return None, in that
+                    # case fall back to ascii
+                    parts.append(a.encode(
+                        sys.getfilesystemencoding() or "ascii"))
                 else:
                     raise TypeError(
                         "argument should be a str object or an os.PathLike "
@@ -1043,8 +1087,9 @@ class PurePath(object):
                                        self._parts[:-1] + [name])
 
     def with_suffix(self, suffix):
-        """Return a new path with the file suffix changed (or added, if
-        none).
+        """Return a new path with the file suffix changed.  If the path
+        has no suffix, add given suffix.  If the given suffix is an empty
+        string, remove the suffix from the path.
         """
         # XXX if suffix is None, should the current suffix be removed?
         f = self._flavour
@@ -1127,7 +1172,10 @@ class PurePath(object):
 
     @property
     def parent(self):
-        """The logical parent of the path."""
+        """The logical parent of the path.
+
+        :
+        """
         drv = self._drv
         root = self._root
         parts = self._parts
@@ -1190,6 +1238,11 @@ class PurePosixPath(PurePath):
 
 
 class PureWindowsPath(PurePath):
+    """PurePath subclass for Windows systems.
+
+    On a Windows system, instantiating a PurePath should return this object.
+    However, you can also instantiate it directly on any system.
+    """
     _flavour = _windows_flavour
     __slots__ = ()
 
@@ -1205,12 +1258,23 @@ from .mate_tool_box import ToolBox
 
 class Path(PurePath,
            AttrAccessor, HashesMethods, PathFilters, MutateMethods, ToolBox):
+    """PurePath subclass that can make system calls.
+
+    Path represents a filesystem path but unlike PurePath, also offers
+    methods to do system calls on path objects. Depending on your system,
+    instantiating a Path will return either a PosixPath or a WindowsPath
+    object. You can also instantiate a PosixPath or WindowsPath directly,
+    but cannot instantiate a WindowsPath on a POSIX system or vice versa.
+    """
     __slots__ = (
         '_accessor',
         '_closed',
     )
 
     def __new__(cls, *args, **kwargs):
+        """
+        :rtype: Path 
+        """
         if cls is Path:
             cls = WindowsPath if os.name == 'nt' else PosixPath
         self = cls._from_parts(args, init=False)
@@ -1266,6 +1330,8 @@ class Path(PurePath,
     def cwd(cls):
         """Return a new path pointing to the current working directory
         (as returned by os.getcwd()).
+
+        :rtype: Path
         """
         return cls(os.getcwd())
 
@@ -1273,12 +1339,16 @@ class Path(PurePath,
     def home(cls):
         """Return a new path pointing to the user's home directory (as
         returned by os.path.expanduser('~')).
+
+        :rtype: Path
         """
         return cls(cls()._flavour.gethomedir(None))
 
     def samefile(self, other_path):
         """Return whether other_path is the same or not as this file
         (as returned by os.path.samefile()).
+
+        :rtype: Path
         """
         if hasattr(os.path, "samestat"):
             st = self.stat()
@@ -1297,6 +1367,8 @@ class Path(PurePath,
     def iterdir(self):
         """Iterate over the files in this directory.  Does not yield any
         result for the special paths '.' and '..'.
+
+        :rtype: typing.Iterable[Path]
         """
         if self._closed:
             self._raise_closed()
@@ -1310,7 +1382,9 @@ class Path(PurePath,
 
     def glob(self, pattern):
         """Iterate over this subtree and yield all existing files (of any
-        kind, including directories) matching the given pattern.
+        kind, including directories) matching the given relative pattern.
+
+        :rtype: typing.Iterable[Path]
         """
         if not pattern:
             raise ValueError("Unacceptable pattern: {0!r}".format(pattern))
@@ -1324,7 +1398,10 @@ class Path(PurePath,
 
     def rglob(self, pattern):
         """Recursively yield all existing files (of any kind, including
-        directories) matching the given pattern, anywhere in this subtree.
+        directories) matching the given relative pattern, anywhere in
+        this subtree.
+
+        :rtype: typing.Iterable[Path]
         """
         pattern = self._flavour.casefold(pattern)
         drv, root, pattern_parts = self._flavour.parse_parts((pattern,))
@@ -1340,6 +1417,8 @@ class Path(PurePath,
 
         No normalization is done, i.e. all '.' and '..' will be kept along.
         Use resolve() to get the canonical path to a file.
+
+        :rtype: Path
         """
         # XXX untested yet!
         if self._closed:
@@ -1363,9 +1442,20 @@ class Path(PurePath,
         s = self._flavour.resolve(self, strict=strict)
         if s is None:
             # No symlink resolution => for consistency, raise an error if
-            # the path doesn't exist or is forbidden
-            self.stat()
+            # the path is forbidden
+            # but not raise error if file does not exist (see issue #54).
+
+            def _try_func():
+                self.stat()
+
+            def _exc_func(exc):
+                pass
+
+            _try_except_filenotfounderror(_try_func, _exc_func)
             s = str(self.absolute())
+        else:
+            # ensure s is a string (normpath requires this on older python)
+            s = str(s)
         # Now we have no symlinks in the path, it's safe to normalize it.
         normed = self._flavour.pathmod.normpath(s)
         obj = self._from_parts((normed,), init=False)
@@ -1487,6 +1577,8 @@ class Path(PurePath,
         try:
             _try_except_filenotfounderror(_try_func, _exc_func)
         except OSError:
+            # Cannot rely on checking for EEXIST, since the operating system
+            # could give priority to other errors like EACCES or EROFS
             if not exist_ok or not self.is_dir():
                 raise
 
@@ -1572,8 +1664,11 @@ class Path(PurePath,
         try:
             self.stat()
         except OSError as e:
-            if e.errno not in (ENOENT, ENOTDIR):
+            if not _ignore_error(e):
                 raise
+            return False
+        except ValueError:
+            # Non-encodable path
             return False
         return True
 
@@ -1584,10 +1679,13 @@ class Path(PurePath,
         try:
             return S_ISDIR(self.stat().st_mode)
         except OSError as e:
-            if e.errno not in (ENOENT, ENOTDIR):
+            if not _ignore_error(e):
                 raise
             # Path doesn't exist or is a broken symlink
             # (see https://bitbucket.org/pitrou/pathlib/issue/12/)
+            return False
+        except ValueError:
+            # Non-encodable path
             return False
 
     def is_file(self):
@@ -1598,11 +1696,35 @@ class Path(PurePath,
         try:
             return S_ISREG(self.stat().st_mode)
         except OSError as e:
-            if e.errno not in (ENOENT, ENOTDIR):
+            if not _ignore_error(e):
                 raise
             # Path doesn't exist or is a broken symlink
             # (see https://bitbucket.org/pitrou/pathlib/issue/12/)
             return False
+        except ValueError:
+            # Non-encodable path
+            return False
+
+    def is_mount(self):
+        """
+        Check if this path is a POSIX mount point
+        """
+        # Need to exist and be a dir
+        if not self.exists() or not self.is_dir():
+            return False
+
+        parent = Path(self.parent)
+        try:
+            parent_dev = parent.stat().st_dev
+        except OSError:
+            return False
+
+        dev = self.stat().st_dev
+        if dev != parent_dev:
+            return True
+        ino = self.stat().st_ino
+        parent_ino = parent.stat().st_ino
+        return ino == parent_ino
 
     def is_symlink(self):
         """
@@ -1611,9 +1733,12 @@ class Path(PurePath,
         try:
             return S_ISLNK(self.lstat().st_mode)
         except OSError as e:
-            if e.errno not in (ENOENT, ENOTDIR):
+            if not _ignore_error(e):
                 raise
             # Path doesn't exist
+            return False
+        except ValueError:
+            # Non-encodable path
             return False
 
     def is_block_device(self):
@@ -1623,10 +1748,13 @@ class Path(PurePath,
         try:
             return S_ISBLK(self.stat().st_mode)
         except OSError as e:
-            if e.errno not in (ENOENT, ENOTDIR):
+            if not _ignore_error(e):
                 raise
             # Path doesn't exist or is a broken symlink
             # (see https://bitbucket.org/pitrou/pathlib/issue/12/)
+            return False
+        except ValueError:
+            # Non-encodable path
             return False
 
     def is_char_device(self):
@@ -1636,10 +1764,13 @@ class Path(PurePath,
         try:
             return S_ISCHR(self.stat().st_mode)
         except OSError as e:
-            if e.errno not in (ENOENT, ENOTDIR):
+            if not _ignore_error(e):
                 raise
             # Path doesn't exist or is a broken symlink
             # (see https://bitbucket.org/pitrou/pathlib/issue/12/)
+            return False
+        except ValueError:
+            # Non-encodable path
             return False
 
     def is_fifo(self):
@@ -1649,10 +1780,13 @@ class Path(PurePath,
         try:
             return S_ISFIFO(self.stat().st_mode)
         except OSError as e:
-            if e.errno not in (ENOENT, ENOTDIR):
+            if not _ignore_error(e):
                 raise
             # Path doesn't exist or is a broken symlink
             # (see https://bitbucket.org/pitrou/pathlib/issue/12/)
+            return False
+        except ValueError:
+            # Non-encodable path
             return False
 
     def is_socket(self):
@@ -1662,10 +1796,13 @@ class Path(PurePath,
         try:
             return S_ISSOCK(self.stat().st_mode)
         except OSError as e:
-            if e.errno not in (ENOENT, ENOTDIR):
+            if not _ignore_error(e):
                 raise
             # Path doesn't exist or is a broken symlink
             # (see https://bitbucket.org/pitrou/pathlib/issue/12/)
+            return False
+        except ValueError:
+            # Non-encodable path
             return False
 
     def expanduser(self):
@@ -1681,10 +1818,18 @@ class Path(PurePath,
 
 
 class PosixPath(Path, PurePosixPath):
+    """Path subclass for non-Windows systems.
+
+    On a POSIX system, instantiating a Path should return this object.
+    """
     __slots__ = ()
 
 
 class WindowsPath(Path, PureWindowsPath):
+    """Path subclass for Windows systems.
+
+    On a Windows system, instantiating a Path should return this object.
+    """
     __slots__ = ()
 
     def owner(self):
@@ -1692,3 +1837,7 @@ class WindowsPath(Path, PureWindowsPath):
 
     def group(self):
         raise NotImplementedError("Path.group() is unsupported on this system")
+
+    def is_mount(self):
+        raise NotImplementedError(
+            "Path.is_mount() is unsupported on this system")
