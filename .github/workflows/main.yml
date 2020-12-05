@@ -30,12 +30,10 @@ jobs:
       - name: "Install dependencies"
         run: |
           set -xe
-          sudo apt-get install libsnappy-dev
           python -VV
           python -m site
           python -m pip install --upgrade pip setuptools wheel virtualenv codecov
           pip install .
-          pip install -r requirements-dev.txt
           pip install -r requirements-test.txt
 
       - name: "Run pytest"

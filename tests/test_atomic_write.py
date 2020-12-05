@@ -9,8 +9,8 @@ from pathlib_mate import PathCls as Path
 HERE = Path(__file__).parent
 DATA_FILE = Path(HERE, "test.dat")
 
-TEXT = "hello world! " * 10
-BINARY = gzip.compress(TEXT.encode("utf-8"))
+TEXT = "hello world! "
+BINARY = TEXT.encode("utf-8")
 
 
 def clear_data_file():
