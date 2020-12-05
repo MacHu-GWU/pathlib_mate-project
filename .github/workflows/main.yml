@@ -42,7 +42,7 @@ jobs:
           python -m pip install --upgrade pip setuptools wheel virtualenv codecov
           pip install .
           pip install -r requirements-test.txt
-        if: ${{ matrix.os == "ubuntu-latest" }}
+        if: matrix.os == "ubuntu-latest"
 
       - name: "Install dependencies on MacOS or Linux"
         run: |
@@ -50,7 +50,7 @@ jobs:
           python -m pip install --upgrade pip setuptools wheel virtualenv codecov
           pip install .
           pip install -r requirements-test.txt
-        if: ${{ matrix.os == "windows-latest" }}
+        if: matrix.os == "windows-latest"
 
       - name: "Run pytest"
         run: "python -m pytest tests --cov=pathlib_mate"
