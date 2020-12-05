@@ -34,7 +34,7 @@ jobs:
         with:
           python-version: "${{ matrix.python-version }}"
 
-      - if: matrix.os == "ubuntu-latest"
+      - if: ${{ matrix.os }} == "ubuntu-latest"
         name: "Install dependencies on MacOS or Linux"
         run: |
           set -xe
@@ -44,7 +44,7 @@ jobs:
           pip install .
           pip install -r requirements-test.txt
 
-      - if: matrix.os == "windows-latest"
+      - if: ${{ matrix.os }} == "windows-latest"
         name: "Install dependencies on MacOS or Linux"
         run: |
           python -m site
