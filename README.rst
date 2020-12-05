@@ -2,8 +2,8 @@
     :target: https://pathlib_mate.readthedocs.io/?badge=latest
     :alt: Documentation Status
 
-.. image:: https://travis-ci.org/MacHu-GWU/pathlib_mate-project.svg?branch=master
-    :target: https://travis-ci.org/MacHu-GWU/pathlib_mate-project?branch=master
+.. image:: https://github.com/MacHu-GWU/pathlib_mate-project/workflows/CI/badge.svg
+    :target: https://github.com/MacHu-GWU/pathlib_mate-project/actions?query=workflow:CI
 
 .. image:: https://codecov.io/gh/MacHu-GWU/pathlib_mate-project/branch/master/graph/badge.svg
   :target: https://codecov.io/gh/MacHu-GWU/pathlib_mate-project
@@ -164,6 +164,21 @@ Features:
 
     # delte
     >>> p.remove()
+
+
+**Atomic Write Support**:
+
+If anything wrong happens during writing big chunk of data into a file. It may leave you an incomplete file. Atomic write can guarantee either 100% done or nothing happens.
+
+Thanks for `atomicwrites <https://pypi.org/project/atomicwrites/>`_ project. Now ``pathlib_mate`` supports atomic write API:
+
+.. code-block:: python
+
+    >>> p = Path("test.dat")
+    >>> s = "Hello World"
+    >>> b = s.encode("utf-8)
+    >>> p.atomic_write_bytes(b, overwrite=True)
+    >>> p.atomic_write_text(s, overwrite=True)
 
 
 **Powerful Production Tools**:

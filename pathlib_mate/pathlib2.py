@@ -6,7 +6,7 @@
 # for python2 type hint
 try:
     import typing
-except: # pragma: no cover
+except:  # pragma: no cover
     pass
 
 import ctypes
@@ -17,14 +17,14 @@ import ntpath
 import os
 import posixpath
 import re
-import six
 import sys
-
-from errno import EINVAL, ENOENT, ENOTDIR, EBADF
 from errno import EEXIST, EPERM, EACCES
+from errno import EINVAL, ENOENT, ENOTDIR, EBADF
 from operator import attrgetter
 from stat import (
     S_ISDIR, S_ISLNK, S_ISREG, S_ISSOCK, S_ISBLK, S_ISCHR, S_ISFIFO)
+
+import six
 
 try:
     from collections.abc import Sequence
@@ -36,7 +36,6 @@ try:
 except ImportError:
     from urllib.parse import quote_from_bytes as urlquote_from_bytes
 
-
 try:
     intern = intern
 except NameError:
@@ -45,6 +44,7 @@ except NameError:
 supports_symlinks = True
 if os.name == 'nt':
     import nt
+
     if sys.getwindowsversion()[:2] >= (6, 0) and sys.version_info >= (3, 2):
         from nt import _getfinalpathname
     else:
@@ -58,10 +58,12 @@ try:
 except ImportError:
     from scandir import scandir as os_scandir
 
+from atomicwrites import atomic_write
+
 __all__ = [
     "PurePath", "PurePosixPath", "PureWindowsPath",
     "Path", "PosixPath", "WindowsPath",
-    ]
+]
 
 #
 # Internals
@@ -230,7 +232,6 @@ def _is_wildcard_pattern(pat):
 
 
 class _Flavour(object):
-
     """A flavour implements a particular (platform-specific) set of path
     semantics."""
 
@@ -310,10 +311,10 @@ class _WindowsFlavour(_Flavour):
     ext_namespace_prefix = '\\\\?\\'
 
     reserved_names = (
-        set(['CON', 'PRN', 'AUX', 'NUL']) |
-        set(['COM%d' % i for i in range(1, 10)]) |
-        set(['LPT%d' % i for i in range(1, 10)])
-        )
+            set(['CON', 'PRN', 'AUX', 'NUL']) |
+            set(['COM%d' % i for i in range(1, 10)]) |
+            set(['LPT%d' % i for i in range(1, 10)])
+    )
 
     # Interesting findings about extended paths:
     # - '\\?\c:\a', '//?/c:\a' and '//?/c:/a' are all supported
@@ -544,6 +545,7 @@ class _PosixFlavour(_Flavour):
                     seen[newpath] = path  # resolved symlink
 
             return path
+
         # NOTE: according to POSIX, getcwd() cannot contain path components
         # which are symlinks.
         base = '' if path.is_absolute() else os.getcwd()
@@ -579,7 +581,6 @@ _posix_flavour = _PosixFlavour()
 
 
 class _Accessor:
-
     """An accessor implements a particular (system-specific or not) way of
     accessing paths on the filesystem."""
 
@@ -590,12 +591,14 @@ class _NormalAccessor(_Accessor):
         @functools.wraps(strfunc)
         def wrapped(pathobj, *args):
             return strfunc(str(pathobj), *args)
+
         return staticmethod(wrapped)
 
     def _wrap_binary_strfunc(strfunc):
         @functools.wraps(strfunc)
         def wrapped(pathobjA, pathobjB, *args):
             return strfunc(str(pathobjA), str(pathobjB), *args)
+
         return staticmethod(wrapped)
 
     stat = _wrap_strfunc(os.stat)
@@ -674,7 +677,6 @@ if hasattr(functools, "lru_cache"):
 
 
 class _Selector:
-
     """A selector matches a specific glob pattern part against the children
     of a given path."""
 
@@ -812,7 +814,6 @@ class _RecursiveWildcardSelector(_Selector):
 #
 
 class _PathParents(Sequence):
-
     """This object provides sequence-like access to the logical ancestors
     of a path.  Don't try to construct it yourself."""
     __slots__ = ('_pathcls', '_drv', '_root', '_parts')
@@ -841,7 +842,6 @@ class _PathParents(Sequence):
 
 
 class PurePath(object):
-
     """PurePath represents a filesystem path and offers operations which
     don't imply any actual filesystem I/O.  Depending on your system,
     instantiating a PurePath will return either a PurePosixPath or a
@@ -989,8 +989,8 @@ class PurePath(object):
         if not isinstance(other, PurePath):
             return NotImplemented
         return (
-            self._cparts == other._cparts
-            and self._flavour is other._flavour)
+                self._cparts == other._cparts
+                and self._flavour is other._flavour)
 
     def __ne__(self, other):
         return not self == other
@@ -1516,6 +1516,8 @@ class Path(PurePath,
     def write_bytes(self, data):
         """
         Open the file in bytes mode, write to it, and close the file.
+
+        :type data: bytes
         """
         if not isinstance(data, six.binary_type):
             raise TypeError(
@@ -1524,9 +1526,12 @@ class Path(PurePath,
         with self.open(mode='wb') as f:
             return f.write(data)
 
-    def write_text(self, data, encoding=None, errors=None):
+    def write_text(self, data, encoding="utf-8", errors=None):
         """
         Open the file in text mode, write to it, and close the file.
+
+        :type data: str
+        :type encoding: str, recommend to use "utf-8"
         """
         if not isinstance(data, six.text_type):
             raise TypeError(
@@ -1534,6 +1539,31 @@ class Path(PurePath,
                 (six.text_type.__name__, data.__class__.__name__))
         with self.open(mode='w', encoding=encoding, errors=errors) as f:
             return f.write(data)
+
+    def atomic_write_bytes(self, data, overwrite=False):
+        """
+        An atomic write action for binary data.
+        Either fully done or nothing happen.
+        Preventing overwriting existing file with incomplete data.
+
+        :type data: bytes
+        :type overwrite: bool
+        """
+        with atomic_write(self.abspath, mode="wb", overwrite=overwrite) as f:
+            f.write(data)
+
+    def atomic_write_text(self, data, encoding="utf-8", overwrite=False):
+        """
+        An atomic write action for text. Either fully done or nothing happen.
+        Preventing overwriting existing file with incomplete data.
+
+        :type data: str
+        :type encoding: str, recommend to use "utf-8"
+        :type overwrite: bool
+        :return:
+        """
+        with atomic_write(self.abspath, mode="wb", overwrite=overwrite) as f:
+            f.write(data.encode(encoding))
 
     def touch(self, mode=0o666, exist_ok=True):
         """

@@ -12,6 +12,22 @@ x.x.x (TODO)
 **Miscellaneous**
 
 
+1.0.1 (2020-12-04) Feature Improvement
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+**Features and Improvements**
+
+- add ``atomic_write_bytes`` and ``atomic_write_text`` method. Preventing overwriting existing file with incomplete data.
+- now ``write_text`` use "utf-8" encoding by default
+
+**Minor Improvements**
+
+**Bugfixes**
+
+**Miscellaneous**
+
+- Move CI to github Action
+
+
 1.0.0 (2020-03-14) First Production Ready Version
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 **Features and Improvements**
@@ -20,7 +36,7 @@ x.x.x (TODO)
 
 **Minor Improvements**
 
-- since Python2.7 is no longer supported. but pathlib_mate still supports Python2.7, it bump ``pathlib2`` version to the latest 2.5.3
+- since Python2.7 is no longer supported. but pathlib_mate still supports Python2.7, it bump ``pathlib2`` version to the latest 2.3.5
 
 **Bugfixes**
 
