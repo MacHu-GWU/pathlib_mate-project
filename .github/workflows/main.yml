@@ -34,7 +34,7 @@ jobs:
         with:
           python-version: "${{ matrix.python-version }}"
 
-      - name: "Install dependencies"
+      - name: "Install dependencies on MacOS or Linux"
         run: |
           set -xe
           python -VV
@@ -42,6 +42,15 @@ jobs:
           python -m pip install --upgrade pip setuptools wheel virtualenv codecov
           pip install .
           pip install -r requirements-test.txt
+        if: ${{ matrix.os == "ubuntu-latest" }}
+
+      - name: "Install dependencies on MacOS or Linux"
+        run: |
+          python -m site
+          python -m pip install --upgrade pip setuptools wheel virtualenv codecov
+          pip install .
+          pip install -r requirements-test.txt
+        if: ${{ matrix.os == "windows-latest" }}
 
       - name: "Run pytest"
         run: "python -m pytest tests --cov=pathlib_mate"
