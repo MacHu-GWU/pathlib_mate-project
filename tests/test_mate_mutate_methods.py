@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 
+from __future__ import unicode_literals
 import pytest
 from pytest import raises
 import shutil
@@ -103,11 +104,11 @@ class TestMutateMethods(object):
         # because __file__ is OS dependent, so don't test this.
         system_name = platform.system()
         if system_name == "Windows":
-            p1 = p.change(new_dirpath=r"C:\User")
+            p1 = p.change(new_dirpath="C:\\User")
             assert p1.ext == p.ext
             assert p1.fname == p.fname
             assert p1.dirname == "User"
-            assert p1.dirpath == r"C:\User"
+            assert p1.dirpath == "C:\\User"
 
         elif system_name in ["Darwin", "Linux"]:
             p1 = p.change(new_dirpath="/Users")
@@ -131,7 +132,7 @@ class TestMutateMethods(object):
         # move file into not existsing folder, and create the folder
         p_file_new = p_file.moveto(
             new_abspath=Path(__file__).parent.
-            append_parts("NOT-EXIST-FOLDER-MOVETO", "file_to_move.txt"),
+                append_parts("NOT-EXIST-FOLDER-MOVETO", "file_to_move.txt"),
             makedirs=True,
         )
         p_file = p_file_new.moveto(new_abspath=p_file.abspath)
@@ -181,6 +182,37 @@ class TestMutateMethods(object):
         n_files = p_dir.n_file
         p_dir_new = p_dir.moveto(new_basename="wow1")
         assert n_files == p_dir_new.n_file
+
+
+class TestRemoveFileOrDir(object):
+    dir_here = Path(__file__).parent
+    path_to_move_file = Path(dir_here, "to_move_file.txt")
+    path_to_move_dir = Path(dir_here, "to_move_dir")
+    path_to_move_dir_file = Path(dir_here, "to_move_dir", "to_move_file.txt")
+
+    def setup_method(self, method):
+        self.path_to_move_file.write_text("test")
+        self.path_to_move_dir.mkdir_if_not_exists()
+        self.path_to_move_dir_file.write_text("test")
+
+    # def teardown_method(self, method):
+    def test_remove(self):
+        self.path_to_move_file.remove()
+        assert self.path_to_move_file.exists() is False
+
+        with pytest.raises(Exception):
+            self.path_to_move_file.remove()
+
+    def test_remove_if_exists(self):
+        # remove a file
+        self.path_to_move_file.remove_if_exists()
+        assert self.path_to_move_file.exists() is False
+        self.path_to_move_file.remove_if_exists()
+
+        # remove a dir
+        self.path_to_move_dir.remove_if_exists()
+        assert self.path_to_move_dir.exists() is False
+        self.path_to_move_dir.remove_if_exists()
 
 
 if __name__ == "__main__":

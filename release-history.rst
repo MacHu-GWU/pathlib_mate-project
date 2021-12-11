@@ -2,7 +2,7 @@ Release and Version History
 ===========================
 
 x.x.x (TODO)
-~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 **Features and Improvements**
 
 **Minor Improvements**
@@ -10,6 +10,13 @@ x.x.x (TODO)
 **Bugfixes**
 
 **Miscellaneous**
+
+
+1.0.2 (2021-12-11)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+**Features and Improvements**
+
+- add ``remove_if_exists`` and ``mkdir_if_not_exists`` syntax sugar method.
 
 
 1.0.1 (2020-12-04) Feature Improvement

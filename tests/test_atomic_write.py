@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 
-import gzip
-
+from __future__ import unicode_literals
 import pytest
 
 from pathlib_mate import PathCls as Path

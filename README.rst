@@ -162,8 +162,14 @@ Features:
     # cut
     >>> p.copyto(new_ext=".md", makedirs=True)
 
-    # delte
+    # delete
     >>> p.remove()
+
+    # delete file or directory recursively, ignore if not exists
+    >>> p.remove_if_exists()
+
+    # make dir and required parents recursively, if not exists
+    >>> p.mkdir_if_not_exists()
 
 
 **Atomic Write Support**:

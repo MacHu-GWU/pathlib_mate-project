@@ -98,15 +98,15 @@ class MutateMethods(object):
 
         return self.__class__(new_dirpath, new_basename)
 
-    def is_not_exist_or_allow_overwrite(self, overwrite=False):
+    def is_not_exist_or_allow_overwrite(self, overwrite=False): # pragma: no cover
         """
         Test whether a file target is not exists or it exists but allow
         overwrite.
         """
-        if self.exists() and overwrite is False:
-            return False
-        else:  # pragma: no cover
+        if (not self.exists()) or (overwrite is True):
             return True
+        else:
+            return False
 
     def moveto(self,
                new_abspath=None,
@@ -192,3 +192,16 @@ class MutateMethods(object):
         Remove it.
         """
         self.unlink(*args, **kwargs)
+
+    def remove_if_exists(self, *args, **kwargs):
+        """
+        Remove a file or entire directory recursively.
+        """
+        if self.exists():
+            if self.is_dir():
+                shutil.rmtree(self.abspath)
+            else:
+                self.remove(*args, **kwargs)
+
+    def mkdir_if_not_exists(self):
+        self.mkdir(parents=True, exist_ok=True)
