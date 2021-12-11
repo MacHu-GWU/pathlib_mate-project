@@ -19,8 +19,8 @@ First, let's use a simple file for demonstration ``C:\Users\admin\readme.txt``:
 
 .. code-block:: python
 
-	>>> from pathlib_mate import Path
-	>>> p = Path(r"C:\Users\admin\readme.txt")
+    >>> from pathlib_mate import Path
+    >>> p = Path(r"C:\Users\admin\readme.txt")
 
 ``pathlib_mate`` provides a set of very straightforward attribute name:
 
@@ -28,97 +28,97 @@ First, let's use a simple file for demonstration ``C:\Users\admin\readme.txt``:
 
 .. code-block:: python
 
-	>>> p.abspath # Absolute path.
-	'C:\Users\admin\readme.txt'
+    >>> p.abspath # Absolute path.
+    'C:\Users\admin\readme.txt'
 
 :meth:`~pathlib_mate.mate_attr_accessor.AttrAccessor.dirpath`
 
 .. code-block:: python
 
-	>>> p.dirpath # Parent dir full absolute path.
-	'C:\Users\admin'
+    >>> p.dirpath # Parent dir full absolute path.
+    'C:\Users\admin'
 
 :meth:`~pathlib_mate.mate_attr_accessor.AttrAccessor.dirname`
 
 .. code-block:: python
 
-	>>> p.dirname # Parent dir name.
-	'admin'
+    >>> p.dirname # Parent dir name.
+    'admin'
 
 :meth:`~pathlib_mate.mate_attr_accessor.AttrAccessor.basename`
 
 .. code-block:: python
 
-	>>> p.basename # File name with extension, path is not included.
-	'readme.txt'
+    >>> p.basename # File name with extension, path is not included.
+    'readme.txt'
 
 :meth:`~pathlib_mate.mate_attr_accessor.AttrAccessor.fname`
 
 .. code-block:: python
 
-	>>> p.fname # File name without extension.
-	'readme'
+    >>> p.fname # File name without extension.
+    'readme'
 
 :meth:`~pathlib_mate.mate_attr_accessor.AttrAccessor.ext`
 
 .. code-block:: python
 
-	>>> p.ext # File extension. If it's a dir, then return empty str.
-	'.txt'
+    >>> p.ext # File extension. If it's a dir, then return empty str.
+    '.txt'
 
 :meth:`~pathlib_mate.mate_attr_accessor.AttrAccessor.md5`
 
 .. code-block:: python
 
-	>>> p.md5 # md5 check sum of this file (if file exists)
+    >>> p.md5 # md5 check sum of this file (if file exists)
 
 :meth:`~pathlib_mate.mate_attr_accessor.AttrAccessor.size`
 
 .. code-block:: python
 
-	>>> p.size # size in bytes
-	1873
+    >>> p.size # size in bytes
+    1873
 
 :meth:`~pathlib_mate.mate_attr_accessor.AttrAccessor.size_in_text`
 
 .. code-block:: python
 
-	>>> p.size_in_text # human readable string of the file size
-	'1.83 KB'
+    >>> p.size_in_text # human readable string of the file size
+    '1.83 KB'
 
 :meth:`~pathlib_mate.mate_attr_accessor.AttrAccessor.mtime`
 
 .. code-block:: python
 
-	>>> p.mtime # Most recent modify time in timestamp. (atime, ctime is similar)
-	1451624400
+    >>> p.mtime # Most recent modify time in timestamp. (atime, ctime is similar)
+    1451624400
 
 :meth:`~pathlib_mate.mate_attr_accessor.AttrAccessor.modify_datetime`
 
 .. code-block:: python
 
-	>>> p.modify_datetime # Most recent modify time in datetime.
-	datetime.datetime(2016, 1, 1, 5, 0) # (access_datetime, create_datetime is similar)
+    >>> p.modify_datetime # Most recent modify time in datetime.
+    datetime.datetime(2016, 1, 1, 5, 0) # (access_datetime, create_datetime is similar)
 
 
 .. code-block:: python
 
-	>>> p = Path(r"C:\Users\admin")
-	C:\Users\admin\
+    >>> p = Path(r"C:\Users\admin")
+    C:\Users\admin\
 
 :meth:`~pathlib_mate.mate_path_filters.PathFilters.n_file`
 
 .. code-block:: python
 
-	>>> p.n_file # count how many file under this directory
-	1000
+    >>> p.n_file # count how many file under this directory
+    1000
 
 :meth:`~pathlib_mate.mate_path_filters.PathFilters.n_dir`
 
 .. code-block:: python
 
-	>>> p.n_dir # count how many folders under this directory
-	10
+    >>> p.n_dir # count how many folders under this directory
+    10
 
 
 Method
@@ -130,18 +130,18 @@ The default :meth:`~pathlib_mate.mate_mutate_methods.MutateMethods.rename` metho
 
 .. code-block:: python
 
-	# You can easily update any parts of the path
-	# Plus a new Path instance will return
-	>>> p_new = p.moveto(new_dirpath=r"C:\User\guest")
-	>>> p_new
-	'C:\User\guest\readme.txt'
+    # You can easily update any parts of the path
+    # Plus a new Path instance will return
+    >>> p_new = p.moveto(new_dirpath=r"C:\User\guest")
+    >>> p_new
+    'C:\User\guest\readme.txt'
 
-	>>> p_new = p.moveto(new_fname=r"introduction")
-	>>> p_new
-	'C:\User\guest\introduction.txt'
+    >>> p_new = p.moveto(new_fname=r"introduction")
+    >>> p_new
+    'C:\User\guest\introduction.txt'
 
-	# This will silently overwrite 'C:\User\guest\introduction.txt'
-	>>> p_new = p.moveto(new_fname=r"introduction", overwrite=True)
+    # This will silently overwrite 'C:\User\guest\introduction.txt'
+    >>> p_new = p.moveto(new_fname=r"introduction", overwrite=True)
 
 
 **Copy a file**: :meth:`~pathlib_mate.mate_mutate_methods.MutateMethods.copyto()`
@@ -155,7 +155,16 @@ And, you can use Path.remove() to remove the file form your disk, if it is a fil
 
 .. code-block:: python
 
-	>>> p.remove()
+    >>> p.remove()
+
+
+**Remove a file or a dir**:
+
+And, you can use Path.remove_if_exists() to remove a file or a directory recursively form your disk. If it is not exists, nothing would happen.
+
+.. code-block:: python
+
+    >>> p.remove_if_exists()
 
 
 **Selecting specific files from a directory, sorting the result set, are very common needs. But the** :meth:`~pathlib_mate.pathlib2.Path.glob()` and :meth:`~pathlib_mate.pathlib2.Path.iterdir()` **is not convenient enough**. Let's see how easy it's done with ``pathlib_mate``, and it's super powerful.
@@ -164,22 +173,22 @@ And, you can use Path.remove() to remove the file form your disk, if it is a fil
 
 .. code-block:: python
 
-	>>> path = Path(r"C:\User\admin")
+    >>> path = Path(r"C:\User\admin")
 
-	# This select files recursively in a directory
-	>>> for p in path.select_file():
-	...
+    # This select files recursively in a directory
+    >>> for p in path.select_file():
+    ...
 
-	# This select directories recursively in a directory
-	>>> for p in path.select_dir():
-	...
+    # This select directories recursively in a directory
+    >>> for p in path.select_dir():
+    ...
 
 If you don't want to include the subfolders (non-recursively), set ``recursive=False``.
 
 .. code-block:: python
 
-	>>> for p in path.select_file(recursive=False):
-	...
+    >>> for p in path.select_file(recursive=False):
+    ...
 
 **Filtering**:
 
