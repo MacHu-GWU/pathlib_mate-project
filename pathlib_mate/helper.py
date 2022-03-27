@@ -43,8 +43,8 @@ MAGNITUDE_OF_DATA = {
 
 
 def repr_data_size(
-    size_in_bytes: int,
-    precision: int = 2,
+    size_in_bytes,
+    precision=2,
 ):
     """
     Return human readable string represent of a file size. Doesn't support
