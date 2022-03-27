@@ -10,7 +10,7 @@ import shutil
 # for type hint only
 try:
     from .pathlib2 import Path
-except ImportError: # pragma: no cover
+except ImportError:  # pragma: no cover
     pass
 
 
@@ -18,6 +18,7 @@ class MutateMethods(object):
     """
     Provide methods to mutate the Path instance.
     """
+
     # --- methods return another Path ---
 
     def drop_parts(self, n=1):
@@ -98,7 +99,7 @@ class MutateMethods(object):
 
         return self.__class__(new_dirpath, new_basename)
 
-    def is_not_exist_or_allow_overwrite(self, overwrite=False): # pragma: no cover
+    def is_not_exist_or_allow_overwrite(self, overwrite=False):  # pragma: no cover
         """
         Test whether a file target is not exists or it exists but allow
         overwrite.
@@ -205,3 +206,13 @@ class MutateMethods(object):
 
     def mkdir_if_not_exists(self):
         self.mkdir(parents=True, exist_ok=True)
+
+    @classmethod
+    def dir_here(cls, file_var):
+        """
+        :type file_var: str
+        :param file_var: the __file__ variable
+
+        :rtype: Path
+        """
+        return cls(file_var).absolute().parent

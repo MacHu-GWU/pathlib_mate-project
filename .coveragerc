@@ -3,7 +3,6 @@
 [run]
 omit =
     pathlib_mate/pathlib2.py
-    pathlib_mate/winzip.py
 
 [report]
 # Regexes for lines to exclude from consideration

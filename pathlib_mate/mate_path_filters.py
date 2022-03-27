@@ -5,14 +5,13 @@ Provide friendly path filter API.
 """
 
 # for type hint only
-try:
-    import typing
-except: # pragma: no cover
-    pass
+try:  # pragma: no cover
+    from typing import TYPE_CHECKING, Callable, Iterable
 
-try:
-    from .pathlib2 import Path
-except ImportError: # pragma: no cover
+    if TYPE_CHECKING:
+        from .pathlib2 import Path
+
+except ImportError:  # pragma: no cover
     pass
 
 from datetime import datetime
@@ -49,11 +48,14 @@ class PathFilters(object):
     """
     Provide friendly path filter API.
     """
+
     # --- assert something ---
 
     def assert_is_file_and_exists(self):
         """
         Assert it is a directory and exists in file system.
+
+        :type self: Path
         """
         if not self.is_file():
             msg = "'%s' is not a file or doesn't exists!" % self
@@ -62,6 +64,8 @@ class PathFilters(object):
     def assert_is_dir_and_exists(self):
         """
         Assert it is a directory and exists in file system.
+
+        :type self: Path
         """
         if not self.is_dir():
             msg = "'%s' is not a file or doesn't exists!" % self
@@ -70,6 +74,8 @@ class PathFilters(object):
     def assert_exists(self):
         """
         Assert it exists.
+
+        :type self: Path
         """
         if not self.exists():
             msg = "'%s' doesn't exists!" % self
@@ -79,11 +85,17 @@ class PathFilters(object):
     def select(self, filters=all_true, recursive=True):
         """Select path by criterion.
 
-        :param filters: a lambda function that take a `pathlib.Path` as input,
-          boolean as a output.
-        :param recursive: include files in subfolder or not.
+        :type self: Path
 
-        :rtype: typing.Iterable[Path]
+        :type filters: Callable
+        :param filters: a lambda function that take
+            a :class:`~pathlib_mate.pathlib2.Path` as input,
+            return boolean as a output.
+
+        :type recursive: bool
+        :param recursive: include files in sub-folder or not.
+
+        :rtype: Iterable[Path]
 
         **中文文档**
 
@@ -103,11 +115,15 @@ class PathFilters(object):
     def select_file(self, filters=all_true, recursive=True):
         """Select file path by criterion.
 
+        :type self: Path
+        :type filters: Callable
+        :type recursive: bool
+
         :rtype: typing.Iterable[Path]
 
         **中文文档**
 
-        根据filters中定义的条件选择文件。
+        根据 ``filters`` 中定义的条件选择文件.
         """
         for p in self.select(filters, recursive):
             if p.is_file():
@@ -116,11 +132,15 @@ class PathFilters(object):
     def select_dir(self, filters=all_true, recursive=True):
         """Select dir path by criterion.
 
+        :type self: Path
+        :type filters: Callable
+        :type recursive: bool
+
         :rtype: typing.Iterable[Path]
 
         **中文文档**
 
-        根据filters中定义的条件选择文件夹。
+        根据 ``filters`` 中定义的条件选择文件夹.
         """
         for p in self.select(filters, recursive):
             if p.is_dir():
@@ -130,6 +150,8 @@ class PathFilters(object):
     def n_file(self):
         """
         Count how many files in this directory. Including file in sub folder.
+
+        :type self: Path
 
         :rtype: int
         """
@@ -143,6 +165,8 @@ class PathFilters(object):
     def n_dir(self):
         """
         Count how many folders in this directory. Including folder in sub folder.
+
+        :type self: Path
 
         :rtype: int
         """
@@ -158,6 +182,8 @@ class PathFilters(object):
         Count how many files in this directory (doesn't include files in
         sub folders).
 
+        :type self: Path
+
         :rtype: int
         """
         self.assert_is_dir_and_exists()
@@ -172,6 +198,8 @@ class PathFilters(object):
         Count how many folders in this directory (doesn't include folder in
         sub folders).
 
+        :type self: Path
+
         :rtype: int
         """
         self.assert_is_dir_and_exists()
@@ -185,6 +213,7 @@ class PathFilters(object):
         """
         Select file path by extension.
 
+        :type self: Path
         :type ext: str
         :type recursive: bool
         :rtype: typing.Iterable[Path]
@@ -199,13 +228,16 @@ class PathFilters(object):
 
         return self.select_file(filters, recursive)
 
-    def select_by_pattern_in_fname(self,
-                                   pattern,
-                                   recursive=True,
-                                   case_sensitive=False):
+    def select_by_pattern_in_fname(
+        self,
+        pattern,
+        recursive=True,
+        case_sensitive=False,
+    ):
         """
         Select file path by text pattern in file name.
 
+        :type self: Path
         :type pattern: str
         :type recursive: bool
         :rtype: typing.Iterable[Path]
@@ -225,13 +257,16 @@ class PathFilters(object):
 
         return self.select_file(filters, recursive)
 
-    def select_by_pattern_in_abspath(self,
-                                     pattern,
-                                     recursive=True,
-                                     case_sensitive=False):
+    def select_by_pattern_in_abspath(
+        self,
+        pattern,
+        recursive=True,
+        case_sensitive=False,
+    ):
         """
         Select file path by text pattern in absolute path.
 
+        :type self: Path
         :type pattern: str
         :type recursive: bool
         :rtype: typing.Iterable[Path]
@@ -251,10 +286,18 @@ class PathFilters(object):
 
         return self.select_file(filters, recursive)
 
-    def select_by_size(self, min_size=0, max_size=1 << 40, recursive=True):
+    def select_by_size(
+        self,
+        min_size=0,
+        max_size=1 << 40,
+        recursive=True,
+    ):
         """
         Select file path by size.
 
+        :type self: Path
+        :type min_size: int
+        :type max_size: int
         :type recursive: bool
         :rtype: typing.Iterable[Path]
 
@@ -267,15 +310,25 @@ class PathFilters(object):
 
         return self.select_file(filters, recursive)
 
-    def select_by_mtime(self, min_time=0, max_time=ts_2100,
-                        recursive=True):
+    def select_by_mtime(
+        self,
+        min_time=0,
+        max_time=ts_2100,
+        recursive=True,
+    ):
         """
         Select file path by modify time.
 
+        :type self: Path
+
+        :type min_time: Union[int, float]
         :param min_time: lower bound timestamp
+
+        :type max_time: Union[int, float]
         :param max_time: upper bound timestamp
 
         :type recursive: bool
+
         :rtype: typing.Iterable[Path]
 
         **中文文档**
@@ -287,11 +340,21 @@ class PathFilters(object):
 
         return self.select_file(filters, recursive)
 
-    def select_by_atime(self, min_time=0, max_time=ts_2100, recursive=True):
+    def select_by_atime(
+        self,
+        min_time=0,
+        max_time=ts_2100,
+        recursive=True
+    ):
         """
         Select file path by access time.
 
+        :type self: Path
+
+        :type min_time: Union[int, float]
         :param min_time: lower bound timestamp
+
+        :type max_time: Union[int, float]
         :param max_time: upper bound timestamp
 
         :type recursive: bool
@@ -306,12 +369,21 @@ class PathFilters(object):
 
         return self.select_file(filters, recursive)
 
-    def select_by_ctime(self, min_time=0, max_time=ts_2100,
-                        recursive=True):
+    def select_by_ctime(
+        self,
+        min_time=0,
+        max_time=ts_2100,
+        recursive=True,
+    ):
         """
         Select file path by create time.
 
+        :type self: Path
+
+        :type min_time: Union[int, float]
         :param min_time: lower bound timestamp
+
+        :type max_time: Union[int, float]
         :param max_time: upper bound timestamp
 
         :type recursive: bool
@@ -336,6 +408,7 @@ class PathFilters(object):
         """
         Select image file.
 
+        :type self: Path
         :type recursive: bool
         :rtype: typing.Iterable[Path]
         """
@@ -351,6 +424,7 @@ class PathFilters(object):
         """
         Select audio file.
 
+        :type self: Path
         :type recursive: bool
         :rtype: typing.Iterable[Path]
         """
@@ -366,6 +440,7 @@ class PathFilters(object):
         """
         Select video file.
 
+        :type self: Path
         :type recursive: bool
         :rtype: typing.Iterable[Path]
         """
@@ -377,6 +452,7 @@ class PathFilters(object):
         """
         Select Microsoft Word file.
 
+        :type self: Path
         :type recursive: bool
         :rtype: typing.Iterable[Path]
         """
@@ -388,6 +464,7 @@ class PathFilters(object):
         """
         Select Microsoft Excel file.
 
+        :type self: Path
         :type recursive: bool
         :rtype: typing.Iterable[Path]
         """
@@ -399,6 +476,7 @@ class PathFilters(object):
         """
         Select compressed archive file.
 
+        :type self: Path
         :type recursive: bool
         :rtype: typing.Iterable[Path]
         """

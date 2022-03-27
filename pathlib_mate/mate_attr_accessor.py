@@ -4,6 +4,15 @@
 Provides additional attribute accessor.
 """
 
+try:  # pragma: no cover
+    from typing import TYPE_CHECKING
+
+    if TYPE_CHECKING:
+        from .pathlib2 import Path
+
+except ImportError:  # pragma: no cover
+    pass
+
 import six
 from datetime import datetime
 
@@ -20,7 +29,11 @@ class AttrAccessor(object):
     @property
     def abspath(self):
         r"""
-        Absolute path.
+        Return absolute path as a string.
+
+        :type self: Path
+
+        :rtype: str
 
         Example: ``C:\User\admin\readme.txt`` for ``C:\User\admin\readme.txt``
         """
@@ -30,6 +43,10 @@ class AttrAccessor(object):
     def abspath_hexstr(self):
         """
         Return absolute path encoded in hex string.
+
+        :type self: Path
+
+        :rtype: str
         """
         return encode_hexstr(self.abspath)
 
@@ -37,6 +54,10 @@ class AttrAccessor(object):
     def dirpath(self):
         r"""
         Parent dir full absolute path.
+
+        :type self: Path
+
+        :rtype: str
 
         Example: ``C:\User\admin`` for ``C:\User\admin\readme.txt``
         """
@@ -46,6 +67,10 @@ class AttrAccessor(object):
     def dirpath_hexstr(self):
         """
         Return dir full absolute path encoded in hex string.
+
+        :type self: Path
+
+        :rtype: str
         """
         return encode_hexstr(self.dirpath)
 
@@ -53,6 +78,10 @@ class AttrAccessor(object):
     def dirname(self):
         r"""
         Parent dir name.
+
+        :type self: Path
+
+        :rtype: str
 
         Example: ``admin`` for ``C:\User\admin\readme.txt``
         """
@@ -62,6 +91,10 @@ class AttrAccessor(object):
     def dirname_hexstr(self):
         """
         Parent dir name in hex string.
+
+        :type self: Path
+
+        :rtype: str
         """
         return encode_hexstr(self.dirname)
 
@@ -69,6 +102,10 @@ class AttrAccessor(object):
     def basename(self):
         r"""
         File name with extension, path is not included.
+
+        :type self: Path
+
+        :rtype: str
 
         Example: ``readme.txt`` for ``C:\User\admin\readme.txt``
         """
@@ -78,6 +115,10 @@ class AttrAccessor(object):
     def basename_hexstr(self):
         """
         File name with extension encoded in hex string.
+
+        :type self: Path
+
+        :rtype: str
         """
         return encode_hexstr(self.basename)
 
@@ -85,6 +126,10 @@ class AttrAccessor(object):
     def fname(self):
         r"""
         File name without extension.
+
+        :type self: Path
+
+        :rtype: str
 
         Example: ``readme`` for ``C:\User\admin\readme.txt``
         """
@@ -94,6 +139,10 @@ class AttrAccessor(object):
     def fname_hexstr(self):
         """
         File name encoded in hex string.
+
+        :type self: Path
+
+        :rtype: str
         """
         return encode_hexstr(self.fname)
 
@@ -101,6 +150,10 @@ class AttrAccessor(object):
     def ext(self):
         r"""
         File extension. If it's a dir, then return empty str.
+
+        :type self: Path
+
+        :rtype: str
 
         Example: ``.txt`` for ``C:\User\admin\readme.txt``
         """
@@ -110,6 +163,10 @@ class AttrAccessor(object):
     def size(self):
         """
         File size in bytes.
+
+        :type self: Path
+
+        :rtype: int
         """
         try:
             return self._stat.st_size
@@ -121,6 +178,10 @@ class AttrAccessor(object):
     def size_in_text(self):
         """
         File size as human readable string.
+
+        :type self: Path
+
+        :rtype: str
         """
         return repr_data_size(self.size, precision=2)
 
@@ -128,6 +189,10 @@ class AttrAccessor(object):
     def mtime(self):
         """
         Get most recent modify time in timestamp.
+
+        :type self: Path
+
+        :rtype: float
         """
         try:
             return self._stat.st_mtime
@@ -139,6 +204,10 @@ class AttrAccessor(object):
     def atime(self):
         """
         Get most recent access time in timestamp.
+
+        :type self: Path
+
+        :rtype: float
         """
         try:
             return self._stat.st_atime
@@ -150,6 +219,10 @@ class AttrAccessor(object):
     def ctime(self):
         """
         Get most recent create time in timestamp.
+
+        :type self: Path
+
+        :rtype: float
         """
         try:
             return self._stat.st_ctime
@@ -161,6 +234,10 @@ class AttrAccessor(object):
     def modify_datetime(self):
         """
         Get most recent modify time in datetime.
+
+        :type self: Path
+
+        :rtype: datetime
         """
         return datetime.fromtimestamp(self.mtime)
 
@@ -168,6 +245,10 @@ class AttrAccessor(object):
     def access_datetime(self):
         """
         Get most recent access time in datetime.
+
+        :type self: Path
+
+        :rtype: datetime
         """
         return datetime.fromtimestamp(self.atime)
 
@@ -175,6 +256,10 @@ class AttrAccessor(object):
     def create_datetime(self):
         """
         Get most recent create time in datetime.
+
+        :type self: Path
+
+        :rtype: datetime
         """
         return datetime.fromtimestamp(self.ctime)
 

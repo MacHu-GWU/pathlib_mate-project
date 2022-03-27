@@ -5,11 +5,21 @@ Provide zip related functions.
 """
 
 from __future__ import print_function
+
 import os
 import random
 import string
 from datetime import datetime
 from zipfile import ZipFile, ZIP_STORED, ZIP_DEFLATED
+
+try:  # pragma: no cover
+    from typing import TYPE_CHECKING, Optional, List, Union, Callable
+
+    if TYPE_CHECKING:
+        from .pathlib2 import Path
+
+except ImportError:  # pragma: no cover
+    pass
 
 from .mate_path_filters import all_true
 from .helper import repr_data_size
@@ -18,6 +28,11 @@ alpha_digits = string.ascii_letters + string.digits
 
 
 def rand_str(length):
+    """
+    :type length: int
+
+    :rtype: str
+    """
     return "".join([random.choice(alpha_digits) for _ in range(length)])
 
 
@@ -26,35 +41,63 @@ class ToolBoxZip(object):
     Provide zip related functions.
     """
 
-    def _auto_zip_archive_dst(self):
-        surfix = "-{}-{}.zip".format(
+    def _default_zip_dst(self):
+        """
+        automatically create destination zip file ``Path`` object.
+
+        :type self: Path
+
+        :rtype: Path
+        """
+        new_basename = "{}-{}-{}.zip".format(
+            self.basename,
             datetime.now().strftime("%Y-%m-%d-%Hh-%Mm-%Ss"),
             rand_str(4),
         )
-        new_basename = self.basename + surfix
         return self.change(new_basename=new_basename)
 
-    def make_zip_archive(self,
-                         dst=None,
-                         filters=all_true,
-                         compress=True,
-                         overwrite=False,
-                         makedirs=False,
-                         verbose=False):  # pragma: no cover
+    def make_zip_archive(
+        self,
+        dst=None,
+        filters=all_true,
+        compress=True,
+        overwrite=False,
+        makedirs=False,
+        include_dir=True,
+        verbose=False,
+    ):  # pragma: no cover
         """
-        Make a zip archive.
+        Make a zip archive of a directory or a file.
 
+        :type self: Path
+
+        :type dst: Optional[Union[Path, str]]
         :param dst: output file path. if not given, will be automatically assigned.
+
+        :type filters: typing.Callable
         :param filters: custom path filter. By default it allows any file.
+
+        :type compress: bool
         :param compress: compress or not.
+
+        :type verbose: bool
         :param overwrite: overwrite exists or not.
+
+        :type makedirs: bool
+        :param makedirs: if True, automatically create the parent dir if not
+            exists
+
+        :type include_dir: bool
+        :param include_dir: if True, then you will see the source dir when you
+            unzip it. It only apply when zipping a directory
+
+        :type verbose: bool
         :param verbose: display log or not.
-        :return:
         """
         self.assert_exists()
 
         if dst is None:
-            dst = self._auto_zip_archive_dst()
+            dst = self._default_zip_dst()
         else:
             dst = self.change(new_abspath=dst)
 
@@ -78,8 +121,6 @@ class ToolBoxZip(object):
             msg = "Making zip archive for '%s' ..." % self
             print(msg)
 
-        current_dir = os.getcwd()
-
         if self.is_dir():
             total_size = 0
             selected = list()
@@ -95,42 +136,69 @@ class ToolBoxZip(object):
                 print(msg)
 
             with ZipFile(dst.abspath, "w", compression) as f:
-                os.chdir(self.abspath)
+                if include_dir:
+                    relpath_root = self.parent
+                else:
+                    relpath_root = self
                 for p in selected:
-                    relpath = p.relative_to(self).__str__()
-                    f.write(relpath)
+                    relpath = p.relative_to(relpath_root).__str__()
+                    f.write(p.abspath, relpath)
 
         elif self.is_file():
             with ZipFile(dst.abspath, "w", compression) as f:
-                os.chdir(self.parent.abspath)
-                f.write(self.basename)
-
-        os.chdir(current_dir)
+                f.write(self.abspath, self.basename)
 
         if verbose:
             msg = "Complete! Archive size is {}.".format(dst.size_in_text)
             print(msg)
 
-    def backup(self,
-               dst=None,
-               ignore=None,
-               ignore_ext=None,
-               ignore_pattern=None,
-               ignore_size_smaller_than=None,
-               ignore_size_larger_than=None,
-               case_sensitive=False):  # pragma: no cover
+    def backup(
+        self,
+        dst=None,
+        ignore=None,
+        ignore_ext=None,
+        ignore_pattern=None,
+        ignore_size_smaller_than=None,
+        ignore_size_larger_than=None,
+        case_sensitive=False,
+        include_dir=True,
+        verbose=True,
+    ):  # pragma: no cover
         """
         Create a compressed zip archive backup for a directory.
 
+        :type self: Path
+
+        :type dst: Optional[Union[Path, str]]
         :param dst: the output file path.
+
+        :type ignore: Optional[List[str]]
         :param ignore: file or directory defined in this list will be ignored.
+
+        :type ignore_ext: Optional[List[str]]
         :param ignore_ext: file with extensions defined in this list will be ignored.
+
+        :type ignore_pattern: Optional[List[str]]
         :param ignore_pattern: any file or directory that contains this pattern
             will be ignored.
+
+        :type ignore_size_smaller_than: int
         :param ignore_size_smaller_than: any file size smaller than this
             will be ignored.
+
+        :type ignore_size_larger_than: int
         :param ignore_size_larger_than: any file size larger than this
             will be ignored.
+
+        :type case_sensitive: bool
+        :param case_sensitive: if True, the ignore rules are case sensitive
+
+        :type include_dir: bool
+        :param include_dir: if True, then you will see the source dir when you
+            unzip it. It only apply when zipping a directory
+
+        :type verbose: bool
+        :param verbose: display log or not.
 
         **中文文档**
 
@@ -145,8 +213,6 @@ class ToolBoxZip(object):
                 return list(arg)
             else:
                 return [arg, ]
-
-        self.assert_is_dir_and_exists()
 
         ignore = preprocess_arg(ignore)
         for i in ignore:
@@ -204,5 +270,10 @@ class ToolBoxZip(object):
             return True
 
         self.make_zip_archive(
-            dst=dst, filters=filters, compress=True, overwrite=False, verbose=True,
+            dst=dst,
+            filters=filters,
+            compress=True,
+            overwrite=False,
+            include_dir=include_dir,
+            verbose=verbose,
         )

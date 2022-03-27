@@ -11,6 +11,16 @@ x.x.x (TODO)
 
 **Miscellaneous**
 
+1.0.3 (TODO)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+**Features and Improvements**
+
+**Minor Improvements**
+
+**Bugfixes**
+
+**Miscellaneous**
+
 
 1.0.2 (2021-12-11)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

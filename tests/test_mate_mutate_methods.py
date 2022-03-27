@@ -214,6 +214,10 @@ class TestRemoveFileOrDir(object):
         assert self.path_to_move_dir.exists() is False
         self.path_to_move_dir.remove_if_exists()
 
+    def test_dir_here(self):
+        dir_here = Path.dir_here(__file__)
+        assert dir_here.basename == "tests"
+
 
 if __name__ == "__main__":
     import os

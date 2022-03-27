@@ -1,5 +1,18 @@
 # -*- coding: utf-8 -*-
 
+"""
+File system utility tool box. mimic linux ``md5``, ``zip``, etc...
+"""
+
+try:  # pragma: no cover
+    from typing import TYPE_CHECKING, Callable, List, Union
+
+    if TYPE_CHECKING:
+        from .pathlib2 import Path
+
+except ImportError:  # pragma: no cover
+    pass
+
 import os
 import six
 import hashlib
@@ -12,33 +25,76 @@ from .mate_tool_box_zip import ToolBoxZip
 
 class ToolBox(ToolBoxZip):
     def get_dir_fingerprint(self, hash_meth):
+        """
+        Return md5 fingerprint of a directory. Calculation is based on
+        iterate recursively through all files, ordered by absolute path,
+        and stream in md5 for each file.
+
+        :type self: Path
+        :type hash_meth: Callable
+
+        :rtype: str
+        """
         m = hash_meth()
-        for p in self.select_file(recursive=True):
+        for p in self.sort_by_abspath(self.select_file(recursive=True)):
             m.update(str(p).encode("utf-8"))
             m.update(p.md5.encode("utf-8"))
         return m.hexdigest()
 
     @property
     def dir_md5(self):
+        """
+        Return md5 fingerprint of a directory.
+
+        See :meth:`ToolBox.get_dir_fingerprint` for details
+
+        :type self: Path
+
+        :rtype: str
+        """
         return self.get_dir_fingerprint(hashlib.md5)
 
     @property
     def dir_sha256(self):
+        """
+        Return sha256 fingerprint of a directory.
+
+        See :meth:`ToolBox.get_dir_fingerprint` for details
+
+        :type self: Path
+
+        :rtype: str
+        """
         return self.get_dir_fingerprint(hashlib.sha256)
 
     @property
     def dir_sha512(self):
+        """
+        Return sha512 fingerprint of a directory.
+
+        See :meth:`ToolBox.get_dir_fingerprint` for details
+
+        :type self: Path
+
+        :rtype: str
+        """
         return self.get_dir_fingerprint(hashlib.sha512)
 
     def is_empty(self, strict=True):
         """
-        - If it's a file, check if it is a empty file. (0 bytes content)
-        - If it's a directory, check if there's no file and dir in it.
+        If it's a file, check if it is a empty file. (0 bytes content)
+
+        If it's a directory, check if there's no file and dir in it.
             But if ``strict = False``, then only check if there's no file in it.
 
+        :type self: Path
+
+        :type strict: bool
         :param strict: only useful when it is a directory. if True, only
             return True if this dir has no dir and file. if False, return True
             if it doesn't have any file.
+
+        :rtype: bool
         """
         if self.exists():
             if self.is_file():
@@ -59,7 +115,12 @@ class ToolBox(ToolBoxZip):
         A command line auto complete similar behavior. Find all item with same
         prefix of this one.
 
+        :type self: Path
+
+        :type case_sensitive: bool
         :param case_sensitive: toggle if it is case sensitive.
+
+        :rtype: List[Path]
         :return: list of :class:`pathlib_mate.pathlib2.Path`.
         """
         self_basename = self.basename
@@ -90,6 +151,9 @@ class ToolBox(ToolBoxZip):
     def print_big_dir(self, top_n=5):
         """
         Print ``top_n`` big dir in this dir.
+
+        :type self: Path
+        :type top_n: int
         """
         self.assert_is_dir_and_exists()
 
@@ -104,6 +168,9 @@ class ToolBox(ToolBoxZip):
     def print_big_file(self, top_n=5):
         """
         Print ``top_n`` big file in this dir.
+
+        :type self: Path
+        :type top_n: int
         """
         self.assert_is_dir_and_exists()
 
@@ -116,7 +183,11 @@ class ToolBox(ToolBoxZip):
             print("{:<9}    {:<9}".format(repr_data_size(size), p.abspath))
 
     def print_big_dir_and_big_file(self, top_n=5):
-        """Print ``top_n`` big dir and ``top_n`` big file in each dir.
+        """
+        Print ``top_n`` big dir and ``top_n`` big file in each dir.
+
+        :type self: Path
+        :type top_n: int
         """
         self.assert_is_dir_and_exists()
 
@@ -141,6 +212,10 @@ class ToolBox(ToolBoxZip):
         Find out how many files, directories and total size (Include file in
         it's sub-folder) it has for each folder and sub-folder.
 
+        :type self: Path
+        :type filters: Callable
+
+        :rtype: dict
         :returns: stat, a dict like ``{"directory path": {
           "file": number of files, "dir": number of directories,
           "size": total size in bytes}}``
@@ -188,6 +263,10 @@ class ToolBox(ToolBoxZip):
         """Find out how many files, directorys and total size (Include file in
         it's sub-folder).
 
+        :type self: Path
+        :type filters: Callable
+
+        :rtype: dict
         :returns: stat, a dict like ``{"file": number of files,
           "dir": number of directorys, "size": total size in bytes}``
 
@@ -213,6 +292,9 @@ class ToolBox(ToolBoxZip):
         Create a new folder having exactly same structure with this directory.
         However, all files are just empty file with same file name.
 
+        :type self: Path
+
+        :type dst: str
         :param dst: destination directory. The directory can't exists before
         you execute this.
 
@@ -227,9 +309,6 @@ class ToolBox(ToolBoxZip):
         dst = os.path.abspath(dst)
         if os.path.exists(dst):  # pragma: no cover
             raise Exception("distination already exist!")
-
-        folder_to_create = list()
-        file_to_create = list()
 
         for current_folder, _, file_list in os.walk(self.abspath):
             current_folder = current_folder.replace(src, dst)
@@ -246,11 +325,14 @@ class ToolBox(ToolBoxZip):
         """
         Execute every ``.py`` file as main script.
 
-        :param py_exe: str, python command or python executable path.
+        :type self: Path
+
+        :type py_exe: str
+        :param py_exe: python command or python executable path.
 
         **中文文档**
 
-        将目录下的所有Python文件作为主脚本用当前解释器运行。
+        将目录下的所有 Python 文件作为主脚本用当前解释器运行。
         """
         import subprocess
 
@@ -269,9 +351,12 @@ class ToolBox(ToolBoxZip):
         """
         Trail white space at end of each line for every ``.py`` file.
 
+        :type self: Path
+        :type filters: Callable
+
         **中文文档**
 
-        将目录下的所有被选择的文件中行末的空格删除。
+        将目录下的所有被选择的文件中行末的空格删除.
         """
         self.assert_is_dir_and_exists()
 
@@ -292,11 +377,12 @@ class ToolBox(ToolBoxZip):
         """
         Auto convert your python code in a directory to pep8 styled code.
 
+        :type self: Path
         :param kwargs: arguments for ``autopep8.fix_code`` method.
 
         **中文文档**
 
-        将目录下的所有Python文件用pep8风格格式化。增加其可读性和规范性。
+        将目录下的所有 Python 文件用 pep8 风格格式化. 增加其可读性和规范性.
         """
         self.assert_is_dir_and_exists()
 
