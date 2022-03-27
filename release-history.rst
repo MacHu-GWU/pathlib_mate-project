@@ -11,15 +11,23 @@ x.x.x (TODO)
 
 **Miscellaneous**
 
-1.0.3 (TODO)
+
+1.0.3 (2022-03-26)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 **Features and Improvements**
 
+- add ``dir_here`` method.
+- add ``parse_data_size`` function.
+
 **Minor Improvements**
+
+- add lots of API document.
 
 **Bugfixes**
 
 **Miscellaneous**
+
+- refact code base, apply type hint almost everywhere, and change code style to black.
 
 
 1.0.2 (2021-12-11)

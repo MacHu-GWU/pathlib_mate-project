@@ -8,8 +8,12 @@ import os
 import shutil
 
 # for type hint only
-try:
-    from .pathlib2 import Path
+try:  # pragma: no cover
+    from typing import TYPE_CHECKING, Union
+
+    if TYPE_CHECKING:
+        from .pathlib2 import Path
+
 except ImportError:  # pragma: no cover
     pass
 
@@ -20,24 +24,27 @@ class MutateMethods(object):
     """
 
     # --- methods return another Path ---
-
     def drop_parts(self, n=1):
         """
-        Drop parts from the ends.
+        Drop number of parts from the ends. By default, it is equal to
+        ``self.parent``.
 
+        Example::
+
+            >>> Path("/usr/bin/python").drop_parts(1)
+            "/user/bin"
+
+            >>> Path("/usr/bin/python").drop_parts(2)
+            "/user"
+
+        :type self: Path
+
+        :type n: int
         :param n: integer, number of parts you wants to drop from ends.
           n has to greater equal than 0.
 
         :rtype: Path
         :returns: a new Path object.
-
-        Example::
-
-            >>> self.__class__("/usr/bin/python").drop_parts(1)
-            "/user/bin"
-
-            >>> self.__class__("/usr/bin/python").drop_parts(2)
-            "/user"
         """
         return self.__class__(*self.parts[:-n])
 
@@ -45,30 +52,61 @@ class MutateMethods(object):
         """
         Append some parts to the end of this path.
 
-        :rtype: Path
-        :returns: a new Path object.
-
         Example::
 
-            >>> self.__class__("/usr/bin/python").append_parts("lib")
+            >>> Path("/usr/bin/python").append_parts("lib")
             "/user/bin/python/lib"
 
-            >>> self.__class__("/usr/bin/python").append_parts("lib", "core.py")
+            >>> Path("/usr/bin/python").append_parts("lib", "core.py")
             "/user/bin/python/lib/core.py"
+
+        :type self: Path
+
+        :rtype: Path
+        :returns: a new Path object.
         """
         return self.__class__(self, *parts)
 
-    def change(self,
-               new_abspath=None,
-               new_dirpath=None,
-               new_dirname=None,
-               new_basename=None,
-               new_fname=None,
-               new_ext=None):
+    def change(
+        self,
+        new_abspath=None,
+        new_dirpath=None,
+        new_dirname=None,
+        new_basename=None,
+        new_fname=None,
+        new_ext=None,
+    ):
         """
-        Return a new :class:`pathlib_mate.pathlib2.Path` object with updated information.
+        Return a new :class:`pathlib_mate.pathlib2.Path` object with updated path.
+
+        Example::
+
+            >>> Path("/Users/alice/test.py").change(new_fname="test1")
+            /Users/alice/test1.py
+
+            >>> Path("/Users/alice/test.py").change(new_ext=".txt")
+            /Users/alice/test.txt
+
+            >>> Path("/Users/alice/test.py").change(new_dirname="bob")
+            /Users/bob/test.py
+
+            >>> Path("/Users/alice/test.py").change(new_dirpath="/tmp")
+            /tmp/test.py
+
+        :type self: Path
+        :type new_abspath: Union[str, Path]
+        :type new_dirpath: str
+        :type new_dirname: str
+        :type new_basename: str
+        :type new_fname: str
+        :type new_ext: str
 
         :rtype: Path
+
+        **中文文档**
+
+        高级重命名函数, 允许用于根据路径的各个组成部分进行重命名. 但和 os.rename
+        方法一样, 需要保证母文件夹存在.
         """
         if new_abspath is not None:
             p = self.__class__(new_abspath)
@@ -109,25 +147,35 @@ class MutateMethods(object):
         else:
             return False
 
-    def moveto(self,
-               new_abspath=None,
-               new_dirpath=None,
-               new_dirname=None,
-               new_basename=None,
-               new_fname=None,
-               new_ext=None,
-               overwrite=False,
-               makedirs=False):
+    def moveto(
+        self,
+        new_abspath=None,
+        new_dirpath=None,
+        new_dirname=None,
+        new_basename=None,
+        new_fname=None,
+        new_ext=None,
+        overwrite=False,
+        makedirs=False,
+    ):
         """
-        An advanced :meth:`pathlib_mate.pathlib2.Path.rename` method provide ability to rename by
-        each components of a path. A new ``Path`` instance will returns.
+        Similar to :meth:`~pathlib_mate.mate_mutate_methods.MutateMethods.change`
+        method. However, it move the original path to new location.
 
+        :type self: Path
+        :type new_abspath: Union[str, Path]
+        :type new_dirpath: str
+        :type new_dirname: str
+        :type new_basename: str
+        :type new_fname: str
+        :type new_ext: str
+        :type overwrite: bool
+        :type makedirs: bool
         :rtype: Path
 
         **中文文档**
 
-        高级重命名函数, 允许用于根据路径的各个组成部分进行重命名。但和os.rename
-        方法一样, 需要保证母文件夹存在。
+        高级 文件 / 文件夹 移动函数, 允许用于根据路径的各个组成部分进行重命名, 然后移动.
         """
         self.assert_exists()
 
@@ -150,19 +198,35 @@ class MutateMethods(object):
                 self.rename(p)
         return p
 
-    def copyto(self,
-               new_abspath=None,
-               new_dirpath=None,
-               new_dirname=None,
-               new_basename=None,
-               new_fname=None,
-               new_ext=None,
-               overwrite=False,
-               makedirs=False):
+    def copyto(
+        self,
+        new_abspath=None,
+        new_dirpath=None,
+        new_dirname=None,
+        new_basename=None,
+        new_fname=None,
+        new_ext=None,
+        overwrite=False,
+        makedirs=False,
+    ):
         """
-        Copy this file to other place.
+        Similar to :meth:`~pathlib_mate.mate_mutate_methods.MutateMethods.change`
+        method. However, it copy the original path to new location.
 
+        :type self: Path
+        :type new_abspath: Union[str, Path]
+        :type new_dirpath: str
+        :type new_dirname: str
+        :type new_basename: str
+        :type new_fname: str
+        :type new_ext: str
+        :type overwrite: bool
+        :type makedirs: bool
         :rtype: Path
+
+        **中文文档**
+
+        高级 文件 / 文件夹 拷贝函数, 允许用于根据路径的各个组成部分进行重命名, 然后拷贝.
         """
         self.assert_exists()
 
@@ -188,28 +252,52 @@ class MutateMethods(object):
                         raise e
         return p
 
-    def remove(self, *args, **kwargs):
+    def remove(self):
         """
-        Remove it.
-        """
-        self.unlink(*args, **kwargs)
+        Remove this file. Won't work if it is a directory.
 
-    def remove_if_exists(self, *args, **kwargs):
+        :type self: Path
+        """
+        self.unlink()
+
+    def remove_if_exists(self):
         """
         Remove a file or entire directory recursively.
+
+        :type self: Path
         """
         if self.exists():
             if self.is_dir():
                 shutil.rmtree(self.abspath)
             else:
-                self.remove(*args, **kwargs)
+                self.remove()
 
     def mkdir_if_not_exists(self):
+        """
+        Make a directory if not exists yet.
+
+        :type self: Path
+        """
         self.mkdir(parents=True, exist_ok=True)
 
     @classmethod
     def dir_here(cls, file_var):
         """
+        Return the directory of the python script that where this method
+        is called.
+
+        Suppose you have a file structure like this::
+
+            /Users/myname/test.py
+
+        And it is the content of ``test.py``::
+
+            from pathlib_mate import Path
+
+            dir_here = Path.dir_here(__file__)
+
+            print(dir_here) # /Users/myname
+
         :type file_var: str
         :param file_var: the __file__ variable
 

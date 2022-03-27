@@ -99,7 +99,7 @@ class PathFilters(object):
 
         **中文文档**
 
-        根据filters中定义的条件选择路径。
+        根据filters中定义的条件选择路径.
         """
         self.assert_is_dir_and_exists()
 
@@ -220,7 +220,7 @@ class PathFilters(object):
 
         **中文文档**
 
-        选择与预定义的若干个扩展名匹配的文件。
+        选择与预定义的若干个扩展名匹配的文件.
         """
         ext = [ext.strip().lower() for ext in ensure_list(ext)]
 
@@ -244,7 +244,7 @@ class PathFilters(object):
 
         **中文文档**
 
-        选择文件名中包含指定子字符串的文件。
+        选择文件名中包含指定子字符串的文件.
         """
         if case_sensitive:
             def filters(p):
@@ -273,7 +273,7 @@ class PathFilters(object):
 
         **中文文档**
 
-        选择绝对路径中包含指定子字符串的文件。
+        选择绝对路径中包含指定子字符串的文件.
         """
         if case_sensitive:
             def filters(p):
@@ -303,7 +303,7 @@ class PathFilters(object):
 
         **中文文档**
 
-        选择所有文件大小在一定范围内的文件。
+        选择所有文件大小在一定范围内的文件.
         """
 
         def filters(p): return min_size <= p.size <= max_size
@@ -333,7 +333,7 @@ class PathFilters(object):
 
         **中文文档**
 
-        选择所有 :attr:`pathlib_mate.pathlib2.Path.mtime` 在一定范围内的文件。
+        选择所有 :attr:`pathlib_mate.pathlib2.Path.mtime` 在一定范围内的文件.
         """
 
         def filters(p): return min_time <= p.mtime <= max_time
@@ -362,7 +362,7 @@ class PathFilters(object):
 
         **中文文档**
 
-        选择所有 :attr:`pathlib_mate.pathlib2.Path.atime` 在一定范围内的文件。
+        选择所有 :attr:`pathlib_mate.pathlib2.Path.atime` 在一定范围内的文件.
         """
 
         def filters(p): return min_time <= p.atime <= max_time
@@ -391,7 +391,7 @@ class PathFilters(object):
 
         **中文文档**
 
-        选择所有 :attr:`pathlib_mate.pathlib2.Path.ctime` 在一定范围内的文件。
+        选择所有 :attr:`pathlib_mate.pathlib2.Path.ctime` 在一定范围内的文件.
         """
 
         def filters(p): return min_time <= p.ctime <= max_time

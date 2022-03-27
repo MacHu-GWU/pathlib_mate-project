@@ -1256,8 +1256,14 @@ from .mate_mutate_methods import MutateMethods
 from .mate_tool_box import ToolBox
 
 
-class Path(PurePath,
-           AttrAccessor, HashesMethods, PathFilters, MutateMethods, ToolBox):
+class Path(
+    PurePath,
+    AttrAccessor,
+    HashesMethods,
+    PathFilters,
+    MutateMethods,
+    ToolBox,
+):
     """PurePath subclass that can make system calls.
 
     Path represents a filesystem path but unlike PurePath, also offers
