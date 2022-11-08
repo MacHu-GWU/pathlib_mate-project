@@ -36,9 +36,19 @@ class TestToolBoxZip(object):
         dir_pathlib_mate.make_zip_archive(dst=dst, verbose=False)
 
         dst = dir_tests.append_parts("pathlib_mate_without_dir.zip").abspath
-        dir_pathlib_mate.make_zip_archive(dst=dst, include_dir=False, verbose=False)
+        dir_pathlib_mate.make_zip_archive(dst=dst, include_dir=False, compress=False, verbose=False)
 
         p_this.make_zip_archive(verbose=False)
+
+        # error handling
+        # already exists error
+        with pytest.raises(OSError):
+            dir_pathlib_mate.make_zip_archive(dst=dst, verbose=False)
+
+        # file extension error
+        with pytest.raises(ValueError):
+            dst = dir_tests.append_parts("pathlib_mate_with_dir.tar").abspath
+            dir_pathlib_mate.make_zip_archive(dst=dst, verbose=False)
 
     def test_backup(self):
         dir_app.backup(verbose=False)

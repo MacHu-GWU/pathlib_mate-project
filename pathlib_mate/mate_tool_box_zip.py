@@ -65,7 +65,7 @@ class ToolBoxZip(object):
         makedirs=False,
         include_dir=True,
         verbose=False,
-    ):  # pragma: no cover
+    ):
         """
         Make a zip archive of a directory or a file.
 
@@ -114,7 +114,7 @@ class ToolBoxZip(object):
             compression = ZIP_STORED
 
         if not dst.parent.exists():
-            if makedirs:
+            if makedirs:  # pragma: no cover
                 os.makedirs(dst.parent.abspath)
 
         if verbose:
