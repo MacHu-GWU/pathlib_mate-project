@@ -15,8 +15,8 @@ except ImportError:  # pragma: no cover
 
 import os
 import six
+import warnings
 import hashlib
-import autopep8
 
 from .mate_path_filters import all_true
 from .helper import repr_data_size
@@ -384,6 +384,12 @@ class ToolBox(ToolBoxZip):
 
         将目录下的所有 Python 文件用 pep8 风格格式化. 增加其可读性和规范性.
         """
+        try:
+            import autopep8
+        except ImportError as e:
+            warnings.warn("you have to 'pip install autopep8' to enable this feature!")
+            raise e
+
         self.assert_is_dir_and_exists()
 
         for p in self.select_by_ext(".py"):
