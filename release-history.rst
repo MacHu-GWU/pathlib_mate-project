@@ -12,6 +12,18 @@ x.x.x (TODO)
 **Miscellaneous**
 
 
+1.1.1 (2022-11-08)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+**Minor Improvements**
+
+- more coverage test for ``Path.make_zip_archive`` method
+
+**Miscellaneous**
+
+- Python2.7 and 3.6 are still supported, but not fully tested.
+- now ``autopep8`` is an optional feature, not a required dependency.
+
+
 1.0.3 (2022-03-26)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 **Features and Improvements**
