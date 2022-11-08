@@ -2,3 +2,4 @@
 pytest # prefer 5.4.3
 pytest-cov # prefer 2.10.1
 tox
+autopep8
