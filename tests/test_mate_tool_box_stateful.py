@@ -41,13 +41,14 @@ class TestToolBoxStateful(object):
         Not need in travis.
         """
         import random
+
         p = Path(__file__).change(new_basename="app")
 
-        dst = Path(__file__) \
-            .change(new_basename="app-backup-%s.zip" % random.randint(1, 9999))
+        dst = Path(__file__).change(
+            new_basename="app-backup-%s.zip" % random.randint(1, 9999)
+        )
         assert dst.exists() is False
-        p.backup(dst.abspath, ignore_size_larger_than=1000,
-                 case_sensitive=False)
+        p.backup(dst.abspath, ignore_size_larger_than=1000, case_sensitive=False)
         assert dst.exists() is True
 
     def test_autopep8(self):
@@ -63,6 +64,13 @@ class TestToolBoxStateful(object):
         """
         p = Path(__file__).change(new_basename="app")
         p.trail_space()
+
+    def test_temp_cwd(self):
+        p = Path(__file__).parent.parent.parent
+        assert Path.cwd() != p
+        with p.temp_cwd():
+            assert Path.cwd() == p
+        assert Path.cwd() != p
 
 
 if __name__ == "__main__":

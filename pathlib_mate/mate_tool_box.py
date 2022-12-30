@@ -17,6 +17,7 @@ import os
 import six
 import warnings
 import hashlib
+import contextlib
 
 from .mate_path_filters import all_true
 from .helper import repr_data_size
@@ -400,3 +401,20 @@ class ToolBox(ToolBoxZip):
 
             with open(p.abspath, "wb") as f:
                 f.write(formatted_code.encode("utf-8"))
+
+
+    @contextlib.contextmanager
+    def temp_cwd(self):
+        """
+        Temporarily set the current working directory and automatically
+        switch back when it's done.
+
+        :type self: Path
+        :rtype: Path
+        """
+        cwd = os.getcwd()
+        os.chdir(self.abspath)
+        try:
+            yield self
+        finally:
+            os.chdir(cwd)
