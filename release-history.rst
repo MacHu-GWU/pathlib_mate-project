@@ -12,6 +12,13 @@ x.x.x (TODO)
 **Miscellaneous**
 
 
+1.2.1 (2022-12-29)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+**Minor Improvements**
+
+- add ``Path.temp_cwd`` method.
+
+
 1.1.1 (2022-11-08)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 **Minor Improvements**
