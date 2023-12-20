@@ -4,18 +4,12 @@
 Provide methods to mutate the Path instance.
 """
 
+from typing import TYPE_CHECKING, Union
 import os
 import shutil
 
-# for type hint only
-try:  # pragma: no cover
-    from typing import TYPE_CHECKING, Union
-
-    if TYPE_CHECKING:
-        from .pathlib2 import Path
-
-except ImportError:  # pragma: no cover
-    pass
+if TYPE_CHECKING:  # pragma: no cover
+    from .pathlib2 import Path
 
 
 class MutateMethods(object):
@@ -132,8 +126,9 @@ class MutateMethods(object):
             new_basename = new_fname + new_ext
         else:
             if new_fname is not None or new_ext is not None:
-                raise ValueError("Cannot having both new_basename, "
-                                 "new_fname, new_ext!")
+                raise ValueError(
+                    "Cannot having both new_basename, " "new_fname, new_ext!"
+                )
 
         return self.__class__(new_dirpath, new_basename)
 

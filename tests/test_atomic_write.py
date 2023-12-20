@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from pathlib_mate import PathCls as Path
+from pathlib_mate import Path
 
 HERE = Path(__file__).parent
 DATA_FILE = Path(HERE, "test.dat")

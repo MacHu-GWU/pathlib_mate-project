@@ -1907,3 +1907,6 @@ class WindowsPath(Path, PureWindowsPath):
     def is_mount(self):
         raise NotImplementedError(
             "Path.is_mount() is unsupported on this system")
+
+
+PathCls = WindowsPath if os.name == "nt" else PosixPath

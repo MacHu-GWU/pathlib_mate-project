@@ -4,16 +4,12 @@
 Provide file hash functions.
 """
 
-try:  # pragma: no cover
-    from typing import TYPE_CHECKING
-
-    if TYPE_CHECKING:
-        from .pathlib2 import Path
-
-except ImportError:  # pragma: no cover
-    pass
+from typing import TYPE_CHECKING
 
 from .hashes import md5file, sha256file, sha512file
+
+if TYPE_CHECKING:  # pragma: no cover
+    from .pathlib2 import Path
 
 
 class HashesMethods(object):

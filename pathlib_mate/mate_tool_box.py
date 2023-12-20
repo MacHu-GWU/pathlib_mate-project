@@ -4,14 +4,7 @@
 File system utility tool box. mimic linux ``md5``, ``zip``, etc...
 """
 
-try:  # pragma: no cover
-    from typing import TYPE_CHECKING, Callable, List, Union
-
-    if TYPE_CHECKING:
-        from .pathlib2 import Path
-
-except ImportError:  # pragma: no cover
-    pass
+from typing import TYPE_CHECKING, List
 
 import os
 import six
@@ -19,11 +12,14 @@ import warnings
 import hashlib
 import contextlib
 
-from .vendor.fileutils import atomic_save, AtomicSaver
+from .vendor.fileutils import atomic_save
 
 from .mate_path_filters import all_true
 from .helper import repr_data_size
 from .mate_tool_box_zip import ToolBoxZip
+
+if TYPE_CHECKING:  # pragma: no cover
+    from .pathlib2 import Path
 
 
 class ToolBox(ToolBoxZip):
@@ -436,7 +432,7 @@ class ToolBox(ToolBoxZip):
         :type data: bytes
         :type overwrite: bool
         """
-        if overwrite is False: # pragma: no cover
+        if overwrite is False:  # pragma: no cover
             if self.exists():
                 raise FileExistsError("file already exists!")
         with atomic_save(self.abspath, text_mode=False) as f:
@@ -457,7 +453,7 @@ class ToolBox(ToolBoxZip):
         :type overwrite: bool
         :return:
         """
-        if overwrite is False: # pragma: no cover
+        if overwrite is False:  # pragma: no cover
             if self.exists():
                 raise FileExistsError("file already exists!")
         with atomic_save(self.abspath, text_mode=False) as f:
@@ -524,3 +520,13 @@ class ToolBox(ToolBoxZip):
                 )
             else:  # pragma: no cover
                 raise ValueError("mode must be one of 'r', 'rb', 'w', 'wb', 'a'!")
+
+    @classmethod
+    def to_path(cls):
+        """
+        Convert a string to Path object.
+
+        :type cls: Path
+        :rtype: Path
+        """
+        return cls(os.path.abspath(os.getcwd()))

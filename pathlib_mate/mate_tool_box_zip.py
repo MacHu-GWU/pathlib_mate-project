@@ -4,25 +4,18 @@
 Provide zip related functions.
 """
 
-from __future__ import print_function
-
+from typing import TYPE_CHECKING, Optional, List, Union
 import os
 import random
 import string
 from datetime import datetime
 from zipfile import ZipFile, ZIP_STORED, ZIP_DEFLATED
 
-try:  # pragma: no cover
-    from typing import TYPE_CHECKING, Optional, List, Union, Callable
-
-    if TYPE_CHECKING:
-        from .pathlib2 import Path
-
-except ImportError:  # pragma: no cover
-    pass
-
 from .mate_path_filters import all_true
 from .helper import repr_data_size
+
+if TYPE_CHECKING:  # pragma: no cover
+    from .pathlib2 import Path
 
 alpha_digits = string.ascii_letters + string.digits
 
@@ -131,7 +124,8 @@ class ToolBoxZip(object):
 
             if verbose:
                 msg = "Got {} files, total size is {}, compressing ...".format(
-                    len(selected), repr_data_size(total_size),
+                    len(selected),
+                    repr_data_size(total_size),
                 )
                 print(msg)
 
@@ -212,7 +206,9 @@ class ToolBoxZip(object):
             if isinstance(arg, (tuple, list)):
                 return list(arg)
             else:
-                return [arg, ]
+                return [
+                    arg,
+                ]
 
         ignore = preprocess_arg(ignore)
         for i in ignore:

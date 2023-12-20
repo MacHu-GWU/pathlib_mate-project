@@ -4,20 +4,15 @@
 Provides additional attribute accessor.
 """
 
-try:  # pragma: no cover
-    from typing import TYPE_CHECKING
-
-    if TYPE_CHECKING:
-        from .pathlib2 import Path
-
-except ImportError:  # pragma: no cover
-    pass
-
+from typing import TYPE_CHECKING
 import six
 from datetime import datetime
 
 from .str_encode import encode_hexstr
 from .helper import repr_data_size
+
+if TYPE_CHECKING:
+    from .pathlib2 import Path
 
 
 class AttrAccessor(object):
