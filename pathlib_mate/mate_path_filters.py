@@ -33,7 +33,7 @@ def _sort_by(key):
     @staticmethod
     def sort_by(p_list, reverse=False):
         """
-        :rtype: typing.Iterable[Path]
+        :rtype: Iterable[Path]
         """
         return sorted(
             p_list,
@@ -119,7 +119,7 @@ class PathFilters(object):
         :type filters: Callable
         :type recursive: bool
 
-        :rtype: typing.Iterable[Path]
+        :rtype: Iterable[Path]
 
         **中文文档**
 
@@ -136,7 +136,7 @@ class PathFilters(object):
         :type filters: Callable
         :type recursive: bool
 
-        :rtype: typing.Iterable[Path]
+        :rtype: Iterable[Path]
 
         **中文文档**
 
@@ -216,7 +216,7 @@ class PathFilters(object):
         :type self: Path
         :type ext: str
         :type recursive: bool
-        :rtype: typing.Iterable[Path]
+        :rtype: Iterable[Path]
 
         **中文文档**
 
@@ -240,7 +240,7 @@ class PathFilters(object):
         :type self: Path
         :type pattern: str
         :type recursive: bool
-        :rtype: typing.Iterable[Path]
+        :rtype: Iterable[Path]
 
         **中文文档**
 
@@ -269,7 +269,7 @@ class PathFilters(object):
         :type self: Path
         :type pattern: str
         :type recursive: bool
-        :rtype: typing.Iterable[Path]
+        :rtype: Iterable[Path]
 
         **中文文档**
 
@@ -299,7 +299,7 @@ class PathFilters(object):
         :type min_size: int
         :type max_size: int
         :type recursive: bool
-        :rtype: typing.Iterable[Path]
+        :rtype: Iterable[Path]
 
         **中文文档**
 
@@ -329,7 +329,7 @@ class PathFilters(object):
 
         :type recursive: bool
 
-        :rtype: typing.Iterable[Path]
+        :rtype: Iterable[Path]
 
         **中文文档**
 
@@ -358,7 +358,7 @@ class PathFilters(object):
         :param max_time: upper bound timestamp
 
         :type recursive: bool
-        :rtype: typing.Iterable[Path]
+        :rtype: Iterable[Path]
 
         **中文文档**
 
@@ -387,7 +387,7 @@ class PathFilters(object):
         :param max_time: upper bound timestamp
 
         :type recursive: bool
-        :rtype: typing.Iterable[Path]
+        :rtype: Iterable[Path]
 
         **中文文档**
 
@@ -410,7 +410,7 @@ class PathFilters(object):
 
         :type self: Path
         :type recursive: bool
-        :rtype: typing.Iterable[Path]
+        :rtype: Iterable[Path]
         """
         return self.select_by_ext(self._image_ext, recursive)
 
@@ -426,7 +426,7 @@ class PathFilters(object):
 
         :type self: Path
         :type recursive: bool
-        :rtype: typing.Iterable[Path]
+        :rtype: Iterable[Path]
         """
         return self.select_by_ext(self._audio_ext, recursive)
 
@@ -442,7 +442,7 @@ class PathFilters(object):
 
         :type self: Path
         :type recursive: bool
-        :rtype: typing.Iterable[Path]
+        :rtype: Iterable[Path]
         """
         return self.select_by_ext(self._video_ext, recursive)
 
@@ -454,7 +454,7 @@ class PathFilters(object):
 
         :type self: Path
         :type recursive: bool
-        :rtype: typing.Iterable[Path]
+        :rtype: Iterable[Path]
         """
         return self.select_by_ext(self._ms_word_ext, recursive)
 
@@ -466,7 +466,7 @@ class PathFilters(object):
 
         :type self: Path
         :type recursive: bool
-        :rtype: typing.Iterable[Path]
+        :rtype: Iterable[Path]
         """
         return self.select_by_ext(self._ms_excel_ext, recursive)
 
@@ -478,7 +478,7 @@ class PathFilters(object):
 
         :type self: Path
         :type recursive: bool
-        :rtype: typing.Iterable[Path]
+        :rtype: Iterable[Path]
         """
         return self.select_by_ext(self._archive_ext, recursive)
 
@@ -550,6 +550,10 @@ class PathFilters(object):
     def dirsize(self):
         """
         Return total file size (include sub folder). Symlink doesn't count.
+
+        :type self: Path
+
+        :rtype: int
         """
         total = 0
         for p in self.select_file(recursive=True):

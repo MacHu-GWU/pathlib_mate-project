@@ -141,6 +141,11 @@ class MutateMethods(object):
         """
         Test whether a file target is not exists or it exists but allow
         overwrite.
+
+        :type self: Path
+        :param overwrite: bool
+
+        :rtype: bool
         """
         if (not self.exists()) or (overwrite is True):
             return True

@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 
-import pytest
 import shutil
 from pathlib_mate import Path
 
@@ -74,7 +73,6 @@ class TestToolBoxStateful(object):
 
 
 if __name__ == "__main__":
-    import os
+    from pathlib_mate.tests import run_cov_test
 
-    basename = os.path.basename(__file__)
-    pytest.main([basename, "-s", "--tb=native"])
+    run_cov_test(__file__, "pathlib_mate.mate_tool_box", preview=False)

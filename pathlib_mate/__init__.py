@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 """
-pathlib_mate provide extensive methods, attributes for pathlib.
+An extended and more powerful pathlib in Python.
 """
 
 from __future__ import print_function
@@ -19,8 +19,7 @@ __github_username__ = "MacHu-GWU"
 import os
 
 try:
-    # from .pathlib2 import Path, WindowsPath, PosixPath
-    from .python37_pathlib import Path, WindowsPath, PosixPath
+    from .pathlib2 import Path, WindowsPath, PosixPath
 
     PathCls = WindowsPath if os.name == "nt" else PosixPath
 except ImportError as e:  # pragma: no cover

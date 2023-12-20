@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 
-from __future__ import unicode_literals
 import pytest
 from pytest import raises
 import shutil
@@ -131,8 +130,9 @@ class TestMutateMethods(object):
 
         # move file into not existsing folder, and create the folder
         p_file_new = p_file.moveto(
-            new_abspath=Path(__file__).parent.
-                append_parts("NOT-EXIST-FOLDER-MOVETO", "file_to_move.txt"),
+            new_abspath=Path(__file__).parent.append_parts(
+                "NOT-EXIST-FOLDER-MOVETO", "file_to_move.txt"
+            ),
             makedirs=True,
         )
         p_file = p_file_new.moveto(new_abspath=p_file.abspath)
@@ -165,14 +165,16 @@ class TestMutateMethods(object):
         # copy file into not existing folder, and create the folder
         p_file_new = p_file.change(
             new_abspath=Path(__file__).parent.append_parts(
-                "NOT-EXIST-FOLDER-COPYTO", "file_to_copy.txt"),
+                "NOT-EXIST-FOLDER-COPYTO", "file_to_copy.txt"
+            ),
         )
         assert p_file_new.exists() is False
         assert p_file_new.parent.exists() is False
 
         p_file_new = p_file.copyto(
             new_abspath=Path(__file__).parent.append_parts(
-                "NOT-EXIST-FOLDER-COPYTO", "file_to_copy.txt"),
+                "NOT-EXIST-FOLDER-COPYTO", "file_to_copy.txt"
+            ),
             makedirs=True,
         )
         assert p_file_new.exists() is True
@@ -220,7 +222,6 @@ class TestRemoveFileOrDir(object):
 
 
 if __name__ == "__main__":
-    import os
+    from pathlib_mate.tests import run_cov_test
 
-    basename = os.path.basename(__file__)
-    pytest.main([basename, "-s", "--tb=native"])
+    run_cov_test(__file__, "pathlib_mate.mate_mutate_methods", preview=False)

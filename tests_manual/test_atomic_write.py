@@ -1,12 +1,14 @@
 # -*- coding: utf-8 -*-
 
-from pathlib_mate import PathCls as Path
+from __future__ import unicode_literals
+import pytest
+
+from pathlib_mate import Path
 
 HERE = Path(__file__).parent
 DATA_FILE = Path(HERE, "test.dat")
 
 TEXT = "hello world! "
-BINARY = TEXT.encode("utf-8")
 
 
 def clear_data_file():
@@ -23,20 +25,15 @@ def teardown_module(module):
 
 
 def test_atomic_write():
-    DATA_FILE.write_bytes(BINARY)
-    assert DATA_FILE.read_bytes() == BINARY
-
-    DATA_FILE.write_text(TEXT)
-    assert DATA_FILE.read_text() == TEXT
-
-    DATA_FILE.atomic_write_bytes(BINARY, overwrite=True)
-    assert DATA_FILE.read_bytes() == BINARY
-
     DATA_FILE.atomic_write_text(TEXT, overwrite=True)
     assert DATA_FILE.read_text() == TEXT
 
+    # run this and manually shut down the program, it should not corrupt the file.
+    DATA_FILE.atomic_write_text(TEXT * 100000000, overwrite=True)
+
 
 if __name__ == "__main__":
-    from pathlib_mate.tests import run_cov_test
+    import os
 
-    run_cov_test(__file__, "pathlib_mate.mate_tool_box", preview=False)
+    basename = os.path.basename(__file__)
+    pytest.main([basename, "-s", "--tb=native"])

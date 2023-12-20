@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from ..paths import dir_project_root, dir_htmlcov
+from .._paths import dir_project_root, dir_htmlcov
 from ..vendor.pytest_cov_helper import run_cov_test as _run_cov_test
 
 

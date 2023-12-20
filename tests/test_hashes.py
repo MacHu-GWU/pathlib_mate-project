@@ -34,7 +34,6 @@ def test_all_algo():
 
 
 if __name__ == "__main__":
-    import os
+    from pathlib_mate.tests import run_cov_test
 
-    basename = os.path.basename(__file__)
-    pytest.main([basename, "-s", "--tb=native"])
+    run_cov_test(__file__, "pathlib_mate.hashes", preview=False)

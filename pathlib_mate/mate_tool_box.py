@@ -19,6 +19,8 @@ import warnings
 import hashlib
 import contextlib
 
+from atomicwrites import atomic_write
+
 from .mate_path_filters import all_true
 from .helper import repr_data_size
 from .mate_tool_box_zip import ToolBoxZip
@@ -418,3 +420,30 @@ class ToolBox(ToolBoxZip):
             yield self
         finally:
             os.chdir(cwd)
+
+    def atomic_write_bytes(self, data, overwrite=False):
+        """
+        An atomic write action for binary data.
+        Either fully done or nothing happen.
+        Preventing overwriting existing file with incomplete data.
+
+        :type self: Path
+        :type data: bytes
+        :type overwrite: bool
+        """
+        with atomic_write(self.abspath, mode="wb", overwrite=overwrite) as f:
+            f.write(data)
+
+    def atomic_write_text(self, data, encoding="utf-8", overwrite=False):
+        """
+        An atomic write action for text. Either fully done or nothing happen.
+        Preventing overwriting existing file with incomplete data.
+
+        :type self: Path
+        :type data: str
+        :type encoding: str, recommend to use "utf-8"
+        :type overwrite: bool
+        :return:
+        """
+        with atomic_write(self.abspath, mode="wb", overwrite=overwrite) as f:
+            f.write(data.encode(encoding))
