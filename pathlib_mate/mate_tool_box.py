@@ -334,6 +334,10 @@ class ToolBox(ToolBoxZip):
 
         将目录下的所有 Python 文件作为主脚本用当前解释器运行。
         """
+        warnings.warn(
+            "this feature will be deprecated soon! this is a historical feature",
+            DeprecationWarning,
+        )
         import subprocess
 
         self.assert_is_dir_and_exists()
@@ -384,6 +388,10 @@ class ToolBox(ToolBoxZip):
 
         将目录下的所有 Python 文件用 pep8 风格格式化. 增加其可读性和规范性.
         """
+        warnings.warn(
+            "this feature will be deprecated soon! use subprocess + cli instead",
+            DeprecationWarning,
+        )
         try:
             import autopep8
         except ImportError as e:

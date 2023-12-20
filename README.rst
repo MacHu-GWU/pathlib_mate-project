@@ -1,5 +1,5 @@
 .. image:: https://readthedocs.org/projects/pathlib_mate/badge/?version=latest
-    :target: https://pathlib_mate.readthedocs.io/?badge=latest
+    :target: https://pathlib-mate.readthedocs.io/?badge=latest
     :alt: Documentation Status
 
 .. image:: https://github.com/MacHu-GWU/pathlib_mate-project/workflows/CI/badge.svg
@@ -28,13 +28,13 @@
 
 
 .. image:: https://img.shields.io/badge/Link-Document-blue.svg
-      :target: https://pathlib_mate.readthedocs.io/index.html
+      :target: https://pathlib-mate.readthedocs.io/index.html
 
 .. image:: https://img.shields.io/badge/Link-API-blue.svg
-      :target: https://pathlib_mate.readthedocs.io/py-modindex.html
+      :target: https://pathlib-mate.readthedocs.io/py-modindex.html
 
 .. image:: https://img.shields.io/badge/Link-Source_Code-blue.svg
-      :target: https://pathlib_mate.readthedocs.io/py-modindex.html
+      :target: https://pathlib-mate.readthedocs.io/py-modindex.html
 
 .. image:: https://img.shields.io/badge/Link-Install-blue.svg
       :target: `install`_

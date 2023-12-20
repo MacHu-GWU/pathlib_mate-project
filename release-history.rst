@@ -12,7 +12,7 @@ x.x.x (TODO)
 **Miscellaneous**
 
 
-1.3.1 (TODO)
+1.3.1 (2023-12-19)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 **🚨 Breaking Change**
 
@@ -25,7 +25,8 @@ x.x.x (TODO)
 
 **Minor Improvements**
 
-**Bugfixes**
+- Add more tests.
+- Now ``pathlib_mate`` has zero dependencies.
 
 **Miscellaneous**
 
