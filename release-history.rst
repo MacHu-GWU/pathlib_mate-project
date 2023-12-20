@@ -12,7 +12,7 @@ x.x.x (TODO)
 **Miscellaneous**
 
 
-x.x.x (TODO)
+1.3.1 (TODO)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 **🚨 Breaking Change**
 
@@ -21,6 +21,7 @@ x.x.x (TODO)
 **Features and Improvements**
 
 - Add ``Path.atomic_open()`` context manager.
+- Add ``T_PATH_ARG`` a type hint object for ``str`` or ``pathlib.Path`` or ``pathlib_mate.Path``.
 
 **Minor Improvements**
 
@@ -30,6 +31,7 @@ x.x.x (TODO)
 
 - since the `atomicwrites <https://pypi.org/project/atomicwrites/>`_ package is deprecated (see this `announcement <https://github.com/untitaker/python-atomicwrites>`_), we now use `boltons <https://pypi.org/project/boltons/>`_ 23.1.1 to provide this feature.
 - upgrade `pathlib2 <https://pypi.org/project/pathlib2>`_ to 2.3.7.post1.
+- since pathlib_mate only support Python3 from this version, but we still have to use six because ``pathlib2`` need it. we include the latest ``six.py`` file in vendor folder as it is to eliminate all dependency.
 
 
 1.2.1 (2022-12-29)

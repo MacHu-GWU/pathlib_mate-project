@@ -22,6 +22,7 @@ try:
         WindowsPath,
         PosixPath,
         PathCls,
+        T_PATH_ARG,
     )
 except ImportError as e:  # pragma: no cover
     pass

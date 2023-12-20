@@ -14,7 +14,7 @@ from typing import (
     TypeVar, Type, Union, Text, Tuple, List, Any, Callable, Iterable, Optional
 )
 
-import six
+from .vendor import six
 import sys
 
 from errno import EINVAL, ENOENT, ENOTDIR, EBADF
@@ -1354,7 +1354,7 @@ class Path(
     )
 
     def __new__(cls, *args, **kwargs):
-        # type: (Type[Path], *Union[Text, PurePath], **Any) -> Path
+        # type: (Type[Path], *Union[Text, PurePath, "PathlibPath"], **Any) -> Path
         if cls is Path:
             cls = WindowsPath if os.name == 'nt' else PosixPath
         self = cls._from_parts(args, init=False)
@@ -1908,5 +1908,12 @@ class WindowsPath(Path, PureWindowsPath):
         raise NotImplementedError(
             "Path.is_mount() is unsupported on this system")
 
+# An explicitly defined Path class for the current OS. This is more explicit for type hint
+PathCls: Union[Type[WindowsPath], Type[PosixPath]] = WindowsPath if os.name == "nt" else PosixPath
 
-PathCls = WindowsPath if os.name == "nt" else PosixPath
+# T_PATH_ARG is a path liked object that can be passed into a function,
+# you can safely use ``Path(a_path_arg)`` to convert it to a pathlib_mate.Path object
+# or safely use ``PathlibPath(a_path_arg)`` to convert it to a pathlib.Path object.
+from pathlib import Path as PathlibPath
+
+T_PATH_ARG = Union[str, PathlibPath, Path]
