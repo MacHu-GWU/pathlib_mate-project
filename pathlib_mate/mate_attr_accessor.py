@@ -12,7 +12,7 @@ from .vendor import six
 from .str_encode import encode_hexstr
 from .helper import repr_data_size
 
-if TYPE_CHECKING:
+if TYPE_CHECKING:  # pragma: no cover
     from .pathlib2 import Path
 
 

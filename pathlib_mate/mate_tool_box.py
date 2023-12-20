@@ -519,13 +519,3 @@ class ToolBox(ToolBoxZip):
                 )
             else:  # pragma: no cover
                 raise ValueError("mode must be one of 'r', 'rb', 'w', 'wb', 'a'!")
-
-    @classmethod
-    def to_path(cls):
-        """
-        Convert a string to Path object.
-
-        :type cls: Path
-        :rtype: Path
-        """
-        return cls(os.path.abspath(os.getcwd()))
