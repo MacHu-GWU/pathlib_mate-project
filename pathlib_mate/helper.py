@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-import six
+from .vendor import six
 
 
 def ensure_str(value):

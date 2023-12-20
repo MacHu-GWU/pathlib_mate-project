@@ -4,8 +4,6 @@
 An extended and more powerful pathlib in Python.
 """
 
-from __future__ import print_function
-
 from ._version import __version__
 
 __short_description__ = "An extended and more powerful pathlib."

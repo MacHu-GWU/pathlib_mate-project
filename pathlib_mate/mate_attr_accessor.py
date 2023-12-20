@@ -5,8 +5,9 @@ Provides additional attribute accessor.
 """
 
 from typing import TYPE_CHECKING
-import six
 from datetime import datetime
+
+from .vendor import six
 
 from .str_encode import encode_hexstr
 from .helper import repr_data_size

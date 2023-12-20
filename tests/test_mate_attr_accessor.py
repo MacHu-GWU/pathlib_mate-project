@@ -1,11 +1,11 @@
 # -*- coding: utf-8 -*-
 
-import os
 from pytest import raises
-
-import six
+import os
 from datetime import datetime
+
 from pathlib_mate import Path
+from pathlib_mate.vendor import six
 
 
 class TestAttrAccessor(object):

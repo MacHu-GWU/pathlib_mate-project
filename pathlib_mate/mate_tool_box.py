@@ -5,13 +5,12 @@ File system utility tool box. mimic linux ``md5``, ``zip``, etc...
 """
 
 from typing import TYPE_CHECKING, List
-
 import os
-import six
 import warnings
 import hashlib
 import contextlib
 
+from .vendor import six
 from .vendor.fileutils import atomic_save
 
 from .mate_path_filters import all_true
