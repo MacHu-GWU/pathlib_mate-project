@@ -1,2 +1,5 @@
-twine>=1.13.0                   # make distribution archive
-wheel>=0.33.1                   # make pre-compiled distribution package
+# This requirements file should only include dependencies for development
+pathlib_mate                            # autopep8 your code
+twine                                   # make distribution archive
+wheel                                   # make pre-compiled distribution package
+build                                   # build distribution package
