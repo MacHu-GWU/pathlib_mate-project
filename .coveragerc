@@ -2,6 +2,11 @@
 # for more info: https://coverage.readthedocs.io/en/coverage-4.4.1/config.html
 [run]
 omit =
+    pathlib_mate/docs/*
+    pathlib_mate/tests/*
+    pathlib_mate/vendor/*
+    pathlib_mate/_version.py
+    pathlib_mate/_paths.py
     pathlib_mate/pathlib2.py
 
 [report]

@@ -19,7 +19,7 @@ import warnings
 import hashlib
 import contextlib
 
-from atomicwrites import atomic_write
+from .vendor.fileutils import atomic_save, AtomicSaver
 
 from .mate_path_filters import all_true
 from .helper import repr_data_size
@@ -129,9 +129,12 @@ class ToolBox(ToolBoxZip):
         self_basename = self.basename
         self_basename_lower = self.basename.lower()
         if case_sensitive:  # pragma: no cover
+
             def match(basename):
                 return basename.startswith(self_basename)
+
         else:
+
             def match(basename):
                 return basename.lower().startswith(self_basename_lower)
 
@@ -207,8 +210,7 @@ class ToolBox(ToolBoxZip):
                 reverse=True,
             )
             for p2, size2 in size_table2[:top_n]:
-                print("    {:<9}    {:<9}".format(
-                    repr_data_size(size2), p2.abspath))
+                print("    {:<9}    {:<9}".format(repr_data_size(size2), p2.abspath))
 
     def file_stat_for_all(self, filters=all_true):  # pragma: no cover
         """
@@ -404,7 +406,6 @@ class ToolBox(ToolBoxZip):
             with open(p.abspath, "wb") as f:
                 f.write(formatted_code.encode("utf-8"))
 
-
     @contextlib.contextmanager
     def temp_cwd(self):
         """
@@ -427,11 +428,18 @@ class ToolBox(ToolBoxZip):
         Either fully done or nothing happen.
         Preventing overwriting existing file with incomplete data.
 
+        Reference:
+
+        - https://boltons.readthedocs.io/en/latest/fileutils.html#boltons.fileutils.atomic_save
+
         :type self: Path
         :type data: bytes
         :type overwrite: bool
         """
-        with atomic_write(self.abspath, mode="wb", overwrite=overwrite) as f:
+        if overwrite is False: # pragma: no cover
+            if self.exists():
+                raise FileExistsError("file already exists!")
+        with atomic_save(self.abspath, text_mode=False) as f:
             f.write(data)
 
     def atomic_write_text(self, data, encoding="utf-8", overwrite=False):
@@ -439,11 +447,80 @@ class ToolBox(ToolBoxZip):
         An atomic write action for text. Either fully done or nothing happen.
         Preventing overwriting existing file with incomplete data.
 
+        Reference:
+
+        - https://boltons.readthedocs.io/en/latest/fileutils.html#boltons.fileutils.atomic_save
+
         :type self: Path
         :type data: str
         :type encoding: str, recommend to use "utf-8"
         :type overwrite: bool
         :return:
         """
-        with atomic_write(self.abspath, mode="wb", overwrite=overwrite) as f:
+        if overwrite is False: # pragma: no cover
+            if self.exists():
+                raise FileExistsError("file already exists!")
+        with atomic_save(self.abspath, text_mode=False) as f:
             f.write(data.encode(encoding))
+
+    def atomic_open(
+        self,
+        mode="r",
+        buffering=-1,
+        encoding=None,
+        errors=None,
+        newline=None,
+        overwrite=None,
+        file_perms=None,
+        part_file=None,
+        overwrite_part=None,
+    ):
+        """
+        A context manager that support
+
+        :type self: Path
+        :type mode: str
+
+        :param buffering: original argument for ``pathlib.Path.open()``
+        :param encoding: original argument for ``pathlib.Path.open()``
+        :param errors: original argument for ``pathlib.Path.open()``
+        :param newline: original argument for ``pathlib.Path.open()``
+        :param overwrite: original argument for ``boltons.fileutils.atomic_save()``
+        :param file_perms: original argument for ``boltons.fileutils.atomic_save()``
+        :param part_file: original argument for ``boltons.fileutils.atomic_save()``
+        :param overwrite_part: original argument for ``boltons.fileutils.atomic_save()``
+
+        Reference:
+
+        - https://boltons.readthedocs.io/en/latest/fileutils.html#boltons.fileutils.atomic_save
+        """
+        if mode in ["r", "rb", "a"]:
+            return self.open(
+                mode=mode,
+                buffering=buffering,
+                encoding=encoding,
+                errors=errors,
+                newline=newline,
+            )
+        else:
+            kwargs = dict(
+                overwrite=overwrite,
+                file_perms=file_perms,
+                part_file=part_file,
+                overwrite_part=overwrite_part,
+            )
+            kwargs = {k: v for k, v in kwargs.items() if v is not None}
+            if mode == "w":
+                return atomic_save(
+                    self.abspath,
+                    text_mode=True,
+                    **kwargs,
+                )
+            elif mode == "wb":
+                return atomic_save(
+                    self.abspath,
+                    text_mode=False,
+                    **kwargs,
+                )
+            else:  # pragma: no cover
+                raise ValueError("mode must be one of 'r', 'rb', 'w', 'wb', 'a'!")

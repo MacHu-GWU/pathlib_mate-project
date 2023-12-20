@@ -35,6 +35,16 @@ def test_atomic_write():
     DATA_FILE.atomic_write_text(TEXT, overwrite=True)
     assert DATA_FILE.read_text() == TEXT
 
+    with DATA_FILE.atomic_open("wb") as f:
+        f.write(BINARY)
+    with DATA_FILE.atomic_open("rb") as f:
+        assert f.read() == BINARY
+
+    with DATA_FILE.atomic_open("w") as f:
+        f.write(TEXT)
+    with DATA_FILE.atomic_open("r") as f:
+        assert f.read() == TEXT
+
 
 if __name__ == "__main__":
     from pathlib_mate.tests import run_cov_test

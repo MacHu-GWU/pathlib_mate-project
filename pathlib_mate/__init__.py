@@ -16,12 +16,13 @@ __maintainer__ = "Sanhe Hu"
 __maintainer_email__ = "husanhe@gmail.com"
 __github_username__ = "MacHu-GWU"
 
-import os
-
 try:
-    from .pathlib2 import Path, WindowsPath, PosixPath
-
-    PathCls = WindowsPath if os.name == "nt" else PosixPath
+    from .api import (
+        Path,
+        WindowsPath,
+        PosixPath,
+        PathCls,
+    )
 except ImportError as e:  # pragma: no cover
     pass
 except Exception as e:  # pragma: no cover

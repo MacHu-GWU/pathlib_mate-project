@@ -6,11 +6,7 @@ Public API of this package.
 
 import os
 
-try:
-    from .pathlib2 import Path, WindowsPath, PosixPath
-
-    PathCls = WindowsPath if os.name == "nt" else PosixPath
-except ImportError as e:  # pragma: no cover
-    pass
-except Exception as e:  # pragma: no cover
-    print(e)
+from .pathlib2 import Path
+from .pathlib2 import WindowsPath
+from .pathlib2 import PosixPath
+PathCls = WindowsPath if os.name == "nt" else PosixPath

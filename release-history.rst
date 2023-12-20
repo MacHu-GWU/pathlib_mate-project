@@ -12,6 +12,26 @@ x.x.x (TODO)
 **Miscellaneous**
 
 
+x.x.x (TODO)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+**🚨 Breaking Change**
+
+- Drop support for Python 2.7 and 3.6. Only support Python 3.7+.
+
+**Features and Improvements**
+
+- Add ``Path.atomic_open()`` context manager.
+
+**Minor Improvements**
+
+**Bugfixes**
+
+**Miscellaneous**
+
+- since the `atomicwrites <https://pypi.org/project/atomicwrites/>`_ package is deprecated (see this `announcement <https://github.com/untitaker/python-atomicwrites>`_), we now use `boltons <https://pypi.org/project/boltons/>`_ 23.1.1 to provide this feature.
+- upgrade `pathlib2 <https://pypi.org/project/pathlib2>`_ to 2.3.7.post1.
+
+
 1.2.1 (2022-12-29)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 **Minor Improvements**
