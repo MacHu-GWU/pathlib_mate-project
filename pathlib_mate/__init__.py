@@ -19,7 +19,8 @@ __github_username__ = "MacHu-GWU"
 import os
 
 try:
-    from .pathlib2 import Path, WindowsPath, PosixPath
+    # from .pathlib2 import Path, WindowsPath, PosixPath
+    from .python311_pathlib import Path, WindowsPath, PosixPath
 
     PathCls = WindowsPath if os.name == "nt" else PosixPath
 except ImportError as e:  # pragma: no cover

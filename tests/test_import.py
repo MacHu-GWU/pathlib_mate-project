@@ -7,10 +7,10 @@ from pytest import raises, approx
 def test():
     import pathlib_mate
 
-    pathlib_mate.Path
-    pathlib_mate.WindowsPath
-    pathlib_mate.PosixPath
-    pathlib_mate.PathCls
+    _ = pathlib_mate.Path
+    _ = pathlib_mate.WindowsPath
+    _ = pathlib_mate.PosixPath
+    _ = pathlib_mate.PathCls
 
 
 if __name__ == "__main__":

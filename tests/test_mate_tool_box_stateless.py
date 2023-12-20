@@ -2,7 +2,7 @@
 
 import pytest
 from pytest import raises
-from pathlib_mate.pathlib2 import Path
+from pathlib_mate import Path
 
 
 class TestToolBoxStateless(object):

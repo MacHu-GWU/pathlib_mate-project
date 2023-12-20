@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import pytest
-from pathlib_mate.pathlib2 import Path
+from pathlib_mate import Path
 
 
 class TestHashesMethods(object):

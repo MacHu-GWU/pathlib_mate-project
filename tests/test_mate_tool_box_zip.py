@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import pytest
-from pathlib_mate.pathlib2 import Path
+from pathlib_mate import Path
 
 dir_tests = Path.dir_here(__file__)
 dir_project_root = dir_tests.parent
