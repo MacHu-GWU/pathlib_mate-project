@@ -20,6 +20,9 @@
 .. image:: https://img.shields.io/pypi/dm/pathlib_mate.svg
     :target: https://github.com/MacHu-GWU/pathlib_mate-project
 
+.. image:: https://img.shields.io/badge/Release_History!--None.svg?style=social
+    :target: https://github.com/MacHu-GWU/pathlib_mate-project/blob/master/release-history.rst
+
 .. image:: https://img.shields.io/badge/STAR_Me_on_GitHub!--None.svg?style=social
     :target: https://github.com/MacHu-GWU/pathlib_mate-project
 
