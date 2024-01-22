@@ -12,6 +12,13 @@ x.x.x (TODO)
 **Miscellaneous**
 
 
+1.3.2 (2024-01-21)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+**Minor Improvements**
+
+- Add type hint for most methods from ``pathlib2.py``.
+
+
 1.3.1 (2023-12-19)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 **🚨 Breaking Change**

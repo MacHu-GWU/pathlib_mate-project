@@ -35,7 +35,6 @@ else:
     import urllib.parse
     urlquote_from_bytes = urllib.parse.quote_from_bytes
 
-
 try:
     intern = intern  # type: ignore
 except NameError:
@@ -886,6 +885,9 @@ class _PathParents(Sequence):
             return len(self._parts)
 
     def __getitem__(self, idx):
+        """
+        :rtype: Path
+        """
         if idx < 0 or idx >= len(self):
             raise IndexError(idx)
         return self._pathcls._from_parsed_parts(self._drv, self._root,
@@ -1150,8 +1152,11 @@ class PurePath(object):
             return name
 
     def with_name(self, name):
-        # type: (Text) -> _P
-        """Return a new path with the file name changed."""
+        """
+        Return a new path with the file name changed.
+
+        :rtype: Path
+        """
         if not self.name:
             raise ValueError("%r has an empty name" % (self,))
         drv, root, parts = self._flavour.parse_parts((name,))
@@ -1162,10 +1167,12 @@ class PurePath(object):
                                        self._parts[:-1] + parts[-1:])
 
     def with_suffix(self, suffix):
-        # type: (Text) -> _P
-        """Return a new path with the file suffix changed.  If the path
+        """
+        Return a new path with the file suffix changed.  If the path
         has no suffix, add given suffix.  If the given suffix is an empty
         string, remove the suffix from the path.
+
+        :rtype: Path
         """
         # XXX if suffix is None, should the current suffix be removed?
         f = self._flavour
@@ -1191,6 +1198,8 @@ class PurePath(object):
         """Return the relative path to another path identified by the passed
         arguments.  If the operation is not possible (because this is not
         a subpath of the other path), raise ValueError.
+
+        :rtype: Path
         """
         # For the purpose of this method, drive and root are considered
         # separate parts, i.e.:
@@ -1236,13 +1245,21 @@ class PurePath(object):
         new path representing either a subpath (if all arguments are relative
         paths) or a totally different path (if one of the arguments is
         anchored).
+
+        :rtype: Path
         """
         return self._make_child(args)
 
     def __truediv__(self, key):
+        """
+        :rtype: Path
+        """
         return self._make_child((key,))
 
     def __rtruediv__(self, key):
+        """
+        :rtype: Path
+        """
         return self._from_parts([key] + self._parts)
 
     if six.PY2:
@@ -1251,7 +1268,11 @@ class PurePath(object):
 
     @property
     def parent(self):
-        """The logical parent of the path."""
+        """
+        The logical parent of the path.
+
+        :rtype: Path
+        """
         drv = self._drv
         root = self._root
         parts = self._parts
@@ -1261,24 +1282,38 @@ class PurePath(object):
 
     @property
     def parents(self):
-        """A sequence of this path's logical parents."""
+        """
+        A sequence of this path's logical parents.
+
+        :rtype: Sequence[Path]
+        """
         return _PathParents(self)
 
     def is_absolute(self):
-        """True if the path is absolute (has both a root and, if applicable,
-        a drive)."""
+        """
+        True if the path is absolute (has both a root and, if applicable,
+        a drive).
+
+        :rtype: bool
+        """
         if not self._root:
             return False
         return not self._flavour.has_drv or bool(self._drv)
 
     def is_reserved(self):
-        """Return True if the path contains one of the special names reserved
-        by the system, if any."""
+        """
+        Return True if the path contains one of the special names reserved
+        by the system, if any.
+
+        :rtype: bool
+        """
         return self._flavour.is_reserved(self._parts)
 
     def match(self, path_pattern):
         """
         Return True if this path matches the given pattern.
+
+        :rtype: bool
         """
         cf = self._flavour.casefold
         path_pattern = cf(path_pattern)
@@ -1408,21 +1443,30 @@ class Path(
 
     @classmethod
     def cwd(cls):
-        """Return a new path pointing to the current working directory
-        (as returned by os.getcwd()).
+        """
+        Return a new path pointing to the current working directory
+        (as returned by os.getcwd())
+
+        :rtype: Path
         """
         return cls(os.getcwd())
 
     @classmethod
     def home(cls):
-        """Return a new path pointing to the user's home directory (as
+        """
+        Return a new path pointing to the user's home directory (as
         returned by os.path.expanduser('~')).
+
+        :rtype: Path
         """
         return cls(cls()._flavour.gethomedir(None))
 
     def samefile(self, other_path):
-        """Return whether other_path is the same or not as this file
+        """
+        Return whether other_path is the same or not as this file
         (as returned by os.path.samefile()).
+
+        :rtype: bool
         """
         if hasattr(os.path, "samestat"):
             st = self.stat()
@@ -1439,8 +1483,11 @@ class Path(
             return st1 == st2
 
     def iterdir(self):
-        """Iterate over the files in this directory.  Does not yield any
+        """
+        Iterate over the files in this directory.  Does not yield any
         result for the special paths '.' and '..'.
+
+        :rtype: Iterable[Path]
         """
         if self._closed:
             self._raise_closed()
@@ -1453,8 +1500,11 @@ class Path(
                 self._raise_closed()
 
     def glob(self, pattern):
-        """Iterate over this subtree and yield all existing files (of any
+        """
+        Iterate over this subtree and yield all existing files (of any
         kind, including directories) matching the given relative pattern.
+
+        :rtype: Iterable[Path]
         """
         if not pattern:
             raise ValueError("Unacceptable pattern: {0!r}".format(pattern))
@@ -1467,9 +1517,12 @@ class Path(
             yield p
 
     def rglob(self, pattern):
-        """Recursively yield all existing files (of any kind, including
+        """
+        Recursively yield all existing files (of any kind, including
         directories) matching the given relative pattern, anywhere in
         this subtree.
+
+        :rtype: Iterable[Path]
         """
         pattern = self._flavour.casefold(pattern)
         drv, root, pattern_parts = self._flavour.parse_parts((pattern,))
@@ -1485,6 +1538,8 @@ class Path(
 
         No normalization is done, i.e. all '.' and '..' will be kept along.
         Use resolve() to get the canonical path to a file.
+
+        :rtype: Path
         """
         # XXX untested yet!
         if self._closed:
@@ -1502,6 +1557,8 @@ class Path(
         Make the path absolute, resolving all symlinks on the way and also
         normalizing it (for example turning slashes into backslashes under
         Windows).
+
+        :rtype: Path
         """
         if self._closed:
             self._raise_closed()
@@ -1568,6 +1625,8 @@ class Path(
     def read_bytes(self):
         """
         Open the file in bytes mode, read it, and close the file.
+
+        :rtype: bytes
         """
         with self.open(mode='rb') as f:
             return f.read()
@@ -1575,6 +1634,8 @@ class Path(
     def read_text(self, encoding=None, errors=None):
         """
         Open the file in text mode, read it, and close the file.
+
+        :rtype: str
         """
         with self.open(mode='r', encoding=encoding, errors=errors) as f:
             return f.read()
@@ -1582,6 +1643,8 @@ class Path(
     def write_bytes(self, data):
         """
         Open the file in bytes mode, write to it, and close the file.
+
+        :type data: bytes
         """
         if not isinstance(data, six.binary_type):
             raise TypeError(
@@ -1593,6 +1656,8 @@ class Path(
     def write_text(self, data, encoding=None, errors=None, newline=None):
         """
         Open the file in text mode, write to it, and close the file.
+
+        :type data: str
         """
         if not isinstance(data, six.text_type):
             raise TypeError(
@@ -1726,6 +1791,8 @@ class Path(
     def exists(self):
         """
         Whether this path exists.
+
+        :rtype: bool
         """
         try:
             self.stat()
@@ -1741,6 +1808,8 @@ class Path(
     def is_dir(self):
         """
         Whether this path is a directory.
+
+        :rtype: bool
         """
         try:
             return S_ISDIR(self.stat().st_mode)
@@ -1758,6 +1827,8 @@ class Path(
         """
         Whether this path is a regular file (also True for symlinks pointing
         to regular files).
+
+        :rtype: bool
         """
         try:
             return S_ISREG(self.stat().st_mode)
@@ -1774,6 +1845,8 @@ class Path(
     def is_mount(self):
         """
         Check if this path is a POSIX mount point
+
+        :rtype: bool
         """
         # Need to exist and be a dir
         if not self.exists() or not self.is_dir():
@@ -1795,6 +1868,8 @@ class Path(
     def is_symlink(self):
         """
         Whether this path is a symbolic link.
+
+        :rtype: bool
         """
         try:
             return S_ISLNK(self.lstat().st_mode)
@@ -1810,6 +1885,8 @@ class Path(
     def is_block_device(self):
         """
         Whether this path is a block device.
+
+        :rtype: bool
         """
         try:
             return S_ISBLK(self.stat().st_mode)
@@ -1826,6 +1903,8 @@ class Path(
     def is_char_device(self):
         """
         Whether this path is a character device.
+
+        :rtype: bool
         """
         try:
             return S_ISCHR(self.stat().st_mode)
@@ -1842,6 +1921,8 @@ class Path(
     def is_fifo(self):
         """
         Whether this path is a FIFO.
+
+        :rtype: bool
         """
         try:
             return S_ISFIFO(self.stat().st_mode)
@@ -1858,6 +1939,8 @@ class Path(
     def is_socket(self):
         """
         Whether this path is a socket.
+
+        :rtype: bool
         """
         try:
             return S_ISSOCK(self.stat().st_mode)
@@ -1874,6 +1957,8 @@ class Path(
     def expanduser(self):
         """ Return a new path with expanded ~ and ~user constructs
         (as returned by os.path.expanduser)
+
+        :rtype: Path
         """
         if (not (self._drv or self._root)
                 and self._parts and self._parts[0][:1] == '~'):
